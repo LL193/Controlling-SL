@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Standortleiter Dashboard</title>
+  <title>Standortleiter Dashboard – Heimbas PDF Analyse</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.js"></script>
   <style>
     :root {
       --bg: #f5f7fb;
@@ -22,230 +23,58 @@
       --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
       --radius: 18px;
     }
-
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Inter, Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
+    body { margin: 0; font-family: Inter, Arial, sans-serif; background: var(--bg); color: var(--text); }
+    .wrap { max-width: 1480px; margin: 0 auto; padding: 24px; }
+    .topbar { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center; margin-bottom: 22px; }
+    .title h1 { margin: 0; font-size: 30px; line-height: 1.1; }
+    .title p { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    button, .file-label {
+      border: 0; border-radius: 12px; padding: 12px 16px; font-weight: 600; cursor: pointer;
+      background: var(--primary); color: white; box-shadow: var(--shadow); text-decoration: none; display: inline-flex; align-items: center;
     }
-
-    .wrap {
-      max-width: 1450px;
-      margin: 0 auto;
-      padding: 24px;
-    }
-
-    .topbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 22px;
-    }
-
-    .title h1 {
-      margin: 0;
-      font-size: 30px;
-      line-height: 1.1;
-    }
-
-    .title p {
-      margin: 6px 0 0;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    button {
-      border: 0;
-      border-radius: 12px;
-      padding: 12px 16px;
-      font-weight: 600;
-      cursor: pointer;
-      background: var(--primary);
-      color: white;
-      box-shadow: var(--shadow);
-    }
-
-    button.secondary {
-      background: white;
-      color: var(--text);
-      border: 1px solid var(--line);
-      box-shadow: none;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 18px;
-    }
-
-    .card {
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 18px;
-      box-shadow: var(--shadow);
-      border: 1px solid rgba(229,231,235,0.8);
-    }
-
+    button.secondary, .file-label.secondary { background: white; color: var(--text); border: 1px solid var(--line); box-shadow: none; }
+    input[type="file"] { display: none; }
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 18px; }
+    .card { background: var(--card); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); border: 1px solid rgba(229,231,235,0.8); }
     .span-12 { grid-column: span 12; }
     .span-8 { grid-column: span 8; }
     .span-6 { grid-column: span 6; }
     .span-4 { grid-column: span 4; }
     .span-3 { grid-column: span 3; }
-
-    @media (max-width: 1100px) {
-      .span-8, .span-6, .span-4, .span-3 { grid-column: span 12; }
-    }
-
-    .section-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .section-head h2, .section-head h3 {
-      margin: 0;
-      font-size: 18px;
-    }
-
+    @media (max-width: 1100px) { .span-8, .span-6, .span-4, .span-3 { grid-column: span 12; } }
+    .section-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .section-head h2, .section-head h3 { margin: 0; font-size: 18px; }
     .muted { color: var(--muted); }
     .small { font-size: 13px; }
-
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-    }
-
-    @media (max-width: 900px) {
-      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-
-    @media (max-width: 560px) {
-      .kpi-grid { grid-template-columns: 1fr; }
-    }
-
-    .kpi {
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 14px;
-      background: linear-gradient(180deg, #fff, #fbfdff);
-    }
-
-    .kpi .label {
-      color: var(--muted);
-      font-size: 13px;
-      margin-bottom: 8px;
-    }
-
-    .kpi .value {
-      font-size: 28px;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      border-radius: 999px;
-      padding: 7px 11px;
-      font-size: 12px;
-      font-weight: 700;
-    }
-
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    @media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px) { .kpi-grid { grid-template-columns: 1fr; } }
+    .kpi { border: 1px solid var(--line); border-radius: 16px; padding: 14px; background: linear-gradient(180deg, #fff, #fbfdff); }
+    .kpi .label { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+    .kpi .value { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+    .pill { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 7px 11px; font-size: 12px; font-weight: 700; }
     .ok { background: var(--ok-soft); color: var(--ok); }
     .warn { background: var(--warn-soft); color: var(--warn); }
     .danger { background: var(--danger-soft); color: var(--danger); }
     .primary { background: var(--primary-soft); color: var(--primary); }
-
-    .two-col {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-
-    @media (max-width: 760px) {
-      .two-col { grid-template-columns: 1fr; }
-    }
-
-    .field-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
-
-    @media (max-width: 760px) {
-      .field-grid { grid-template-columns: 1fr; }
-    }
-
-    .field label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 6px;
-    }
-
-    input, textarea, select {
-      width: 100%;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      padding: 11px 12px;
-      font: inherit;
-      background: white;
-    }
-
-    textarea { min-height: 110px; resize: vertical; }
-
-    .list {
-      display: grid;
-      gap: 10px;
-    }
-
-    .list-item {
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 12px;
-      background: #fff;
-    }
-
+    .field-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    @media (max-width: 760px) { .field-grid { grid-template-columns: 1fr; } }
+    .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+    input, textarea, select { width: 100%; border-radius: 12px; border: 1px solid var(--line); padding: 11px 12px; font: inherit; background: white; }
+    textarea { min-height: 100px; resize: vertical; }
+    .list { display: grid; gap: 10px; }
+    .list-item { border: 1px solid var(--line); border-radius: 14px; padding: 12px; background: #fff; }
     .list-item strong { display: block; margin-bottom: 4px; }
-
-    .summary {
-      border: 1px dashed #9ca3af;
-      border-radius: 16px;
-      padding: 16px;
-      background: #fcfcfd;
-      white-space: pre-wrap;
-      line-height: 1.5;
-    }
-
-    .legal-box {
-      background: #fafafa;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 14px;
-      display: grid;
-      gap: 10px;
-    }
-
-    .footer-note {
-      color: var(--muted);
-      font-size: 12px;
-      margin-top: 12px;
-      line-height: 1.5;
-    }
+    .summary { border: 1px dashed #9ca3af; border-radius: 16px; padding: 16px; background: #fcfcfd; white-space: pre-wrap; line-height: 1.5; }
+    .legal-box { background: #fafafa; border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; gap: 10px; }
+    .footer-note { color: var(--muted); font-size: 12px; margin-top: 12px; line-height: 1.5; }
+    .table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 14px; }
+    table { width: 100%; border-collapse: collapse; background: white; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; font-size: 14px; }
+    th { background: #f9fafb; position: sticky; top: 0; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
   </style>
 </head>
 <body>
@@ -253,100 +82,65 @@
     <div class="topbar">
       <div class="title">
         <h1>Standortleiter Dashboard</h1>
-        <p>Schnellübersicht für Steuerung, Prioritäten, Vertragsrahmen und Tagesgeschäft</p>
+        <p>Heimbas Rechnungsvorschau hochladen, Kunden automatisch klassifizieren, Vertrieb und Betreuung sofort steuern</p>
       </div>
       <div class="actions">
-        <button class="secondary" onclick="resetData()">Zurücksetzen</button>
+        <label class="file-label" for="pdfUpload">PDF Rechnungsvorschau hochladen</label>
+        <input id="pdfUpload" type="file" accept="application/pdf" />
         <button class="secondary" onclick="window.print()">Drucken / PDF</button>
-        <button onclick="copySummary()">Management-Zusammenfassung kopieren</button>
+        <button class="secondary" onclick="resetAll()">Zurücksetzen</button>
+        <button onclick="copySummary()">Zusammenfassung kopieren</button>
       </div>
     </div>
 
     <div class="grid">
       <div class="card span-12">
         <div class="section-head">
-          <h2>Heute im Blick</h2>
+          <h2>Ablauf</h2>
           <span class="pill primary" id="todayDate"></span>
         </div>
-        <div class="kpi-grid">
-          <div class="kpi">
-            <div class="label">Auslastung Betreuung</div>
-            <div class="value" id="kpiUtilization">0 %</div>
-            <div id="utilizationStatus" class="pill warn">Bitte Daten pflegen</div>
-          </div>
-          <div class="kpi">
-            <div class="label">Aktive Kunden</div>
-            <div class="value" id="kpiClients">0</div>
-            <div class="small muted">Soll / Ist für schnellen Überblick</div>
-          </div>
-          <div class="kpi">
-            <div class="label">Offene Bewerber</div>
-            <div class="value" id="kpiApplicants">0</div>
-            <div class="small muted">Zur Personalsteuerung</div>
-          </div>
-          <div class="kpi">
-            <div class="label">Monatsmarge</div>
-            <div class="value" id="kpiMargin">0 %</div>
-            <div id="marginStatus" class="pill warn">Noch keine Aussage</div>
-          </div>
+        <div class="list">
+          <div class="list-item"><strong>1. PDF aus Heimbas hochladen</strong><span class="muted">Rechnungsvorschau oder Rechnungsübersicht als PDF.</span></div>
+          <div class="list-item"><strong>2. Text wird automatisch analysiert</strong><span class="muted">Kundennamen und Beträge werden aus dem PDF gelesen.</span></div>
+          <div class="list-item"><strong>3. Kunden werden eingeteilt</strong><span class="muted">A &gt; 500 €, B 400–500 €, C 200–400 €, D 0–200 €.</span></div>
+          <div class="list-item"><strong>4. Standortleiter erhält Sofortauswertung</strong><span class="muted">Verteilung, Top-Kunden, Vertriebsimpulse, Management-Zusammenfassung.</span></div>
         </div>
       </div>
 
       <div class="card span-8">
         <div class="section-head">
-          <h2>Eingaben Tagesgeschäft</h2>
-          <span class="small muted">Diese Felder aktualisieren automatisch die Management-Zusammenfassung</span>
+          <h2>PDF-Analyse Heimbas</h2>
+          <span class="small muted" id="pdfStatus">Noch keine PDF hochgeladen.</span>
         </div>
-        <div class="field-grid">
+        <div class="field-grid" style="margin-bottom:12px;">
           <div class="field">
             <label for="locationName">Standort</label>
-            <input id="locationName" data-save value="Landsberg am Lech" />
+            <input id="locationName" value="Landsberg am Lech" />
           </div>
           <div class="field">
             <label for="leaderName">Standortleiter</label>
-            <input id="leaderName" data-save placeholder="Name eintragen" />
-          </div>
-          <div class="field">
-            <label for="activeClients">Aktive Kunden</label>
-            <input id="activeClients" data-save type="number" value="0" />
-          </div>
-          <div class="field">
-            <label for="careHoursSold">Verkaufte Stunden / Monat</label>
-            <input id="careHoursSold" data-save type="number" value="0" />
-          </div>
-          <div class="field">
-            <label for="careHoursAvailable">Verfügbare Stunden / Monat</label>
-            <input id="careHoursAvailable" data-save type="number" value="0" />
-          </div>
-          <div class="field">
-            <label for="hourRate">Durchschnittlicher Stundensatz in EUR</label>
-            <input id="hourRate" data-save type="number" step="0.01" value="0" />
-          </div>
-          <div class="field">
-            <label for="monthlyRevenue">Monatsumsatz in EUR</label>
-            <input id="monthlyRevenue" data-save type="number" step="0.01" value="0" />
-          </div>
-          <div class="field">
-            <label for="monthlyCosts">Monatskosten in EUR</label>
-            <input id="monthlyCosts" data-save type="number" step="0.01" value="0" />
-          </div>
-          <div class="field">
-            <label for="openApplicants">Offene Bewerber</label>
-            <input id="openApplicants" data-save type="number" value="0" />
-          </div>
-          <div class="field">
-            <label for="openShifts">Offene Dienste / Einsätze</label>
-            <input id="openShifts" data-save type="number" value="0" />
-          </div>
-          <div class="field">
-            <label for="sickEmployees">Krankmeldungen aktuell</label>
-            <input id="sickEmployees" data-save type="number" value="0" />
-          </div>
-          <div class="field">
-            <label for="cashDays">Liquiditätsreichweite in Tagen</label>
-            <input id="cashDays" data-save type="number" value="0" />
+            <input id="leaderName" placeholder="Name eintragen" />
           </div>
         </div>
+        <div class="field-grid" style="margin-bottom:12px;">
+          <div class="field">
+            <label for="namePattern">Namens-Erkennung</label>
+            <input id="namePattern" value="^([A-ZÄÖÜ][A-Za-zÄÖÜäöüß\-]+(?:\s+[A-ZÄÖÜ][A-Za-zÄÖÜäöüß\-]+){0,3})$" />
+          </div>
+          <div class="field">
+            <label for="amountPattern">Betrags-Erkennung</label>
+            <input id="amountPattern" value="(-?\d{1,3}(?:\.\d{3})*,\d{2})\s*€?" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="manualText">Optional: erkannter Text manuell prüfen / ergänzen</label>
+          <textarea id="manualText" placeholder="Hier erscheint der erkannte PDF-Text zur Kontrolle."></textarea>
+        </div>
+        <div class="actions" style="margin-top:12px;">
+          <button type="button" class="secondary" onclick="analyzeManualText()">Text erneut auswerten</button>
+          <button type="button" class="secondary" onclick="loadDemoData()">Demo-Daten laden</button>
+        </div>
+        <div class="footer-note">Hinweis: Heimbas-PDFs können je nach Layout unterschiedlich aufgebaut sein. Die automatische Erkennung ist daher heuristisch. Über die Prüfansicht kannst du Auffälligkeiten sofort sehen und das Regex-Muster anpassen.</div>
       </div>
 
       <div class="card span-4">
@@ -354,270 +148,395 @@
           <h2>Automatische Prioritäten</h2>
         </div>
         <div class="list" id="priorityList"></div>
-        <div class="footer-note">Regel: geringe Auslastung, schwache Marge, offene Dienste und niedrige Liquiditätsreichweite werden automatisch hervorgehoben.</div>
+      </div>
+
+      <div class="card span-12">
+        <div class="section-head">
+          <h2>Kundensegmente A / B / C / D</h2>
+          <span class="pill primary" id="recognizedCount">0 erkannte Kunden</span>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi"><div class="label">A-Kunden</div><div class="value" id="segmentA">0</div><div class="small muted">über 500 €</div></div>
+          <div class="kpi"><div class="label">B-Kunden</div><div class="value" id="segmentB">0</div><div class="small muted">400 € bis 500 €</div></div>
+          <div class="kpi"><div class="label">C-Kunden</div><div class="value" id="segmentC">0</div><div class="small muted">200 € bis 399,99 €</div></div>
+          <div class="kpi"><div class="label">D-Kunden</div><div class="value" id="segmentD">0</div><div class="small muted">0 € bis 199,99 €</div></div>
+        </div>
       </div>
 
       <div class="card span-6">
         <div class="section-head">
-          <h2>Vertrags-Schnellansicht Standortleiter</h2>
-          <span class="pill primary">Rechtsrahmen intern</span>
+          <h2>Verteilung & Steuerungsimpulse</h2>
         </div>
-        <div class="two-col">
-          <div class="legal-box">
-            <div><strong>Beginn Arbeitsverhältnis</strong><br><span class="muted">01.09.2025</span></div>
-            <div><strong>Probezeit</strong><br><span class="muted">6 Monate</span></div>
-            <div><strong>Arbeitszeit</strong><br><span class="muted">40 Stunden / Woche</span></div>
-            <div><strong>Bruttogehalt</strong><br><span class="muted">5.000 EUR / Monat</span></div>
-            <div><strong>Urlaub</strong><br><span class="muted">29 Arbeitstage / Jahr</span></div>
-          </div>
-          <div class="legal-box">
-            <div><strong>Verträge abschließen</strong><br><span class="muted">bis 3.000 EUR Einzelwert</span></div>
-            <div><strong>Zahlungen freigeben</strong><br><span class="muted">bis 5.000 EUR</span></div>
-            <div><strong>Personalentscheidungen</strong><br><span class="muted">im Budgetrahmen zulässig</span></div>
-            <div><strong>Ausgeschlossen</strong><br><span class="muted">Bankgeschäfte, Kredite, Strukturänderungen</span></div>
-            <div><strong>Unterschrift</strong><br><span class="muted">immer mit Zusatz „i.V.“</span></div>
-          </div>
+        <div class="legal-box">
+          <div><strong>Kundenmix</strong><br><span class="muted" id="mixByCount">Noch keine Auswertung.</span></div>
+          <div><strong>Umsatzmix</strong><br><span class="muted" id="mixByRevenue">Noch keine Auswertung.</span></div>
+          <div><strong>Vertriebsimpuls</strong><br><span class="muted" id="salesHint">Bitte PDF hochladen.</span></div>
+          <div><strong>Betreuungsimpuls</strong><br><span class="muted" id="opsHint">Bitte PDF hochladen.</span></div>
         </div>
-        <div class="footer-note">Nur interne Arbeitshilfe. Rechtliche Einzelfallprüfung, insbesondere bei Vollmacht, Arbeitszeit, Urlaub, Wettbewerbsverbot und Kündigung, sollte im Zweifel separat erfolgen.</div>
       </div>
 
       <div class="card span-6">
         <div class="section-head">
           <h2>Management-Zusammenfassung</h2>
-          <span class="small muted">Für GF, PDL, Stellv. PDL oder Verwaltungsübergabe</span>
         </div>
-        <div class="summary" id="summaryBox"></div>
+        <div class="summary" id="summaryBox">Noch keine Auswertung.</div>
       </div>
 
-      <div class="card span-6">
+      <div class="card span-12">
         <div class="section-head">
-          <h2>Akute Themen / Maßnahmen</h2>
+          <h2>Erkannte Kundenliste</h2>
+          <span class="small muted">Diese Liste dient als Prüfansicht für automatische Zuordnung</span>
         </div>
-        <div class="field">
-          <label for="criticalTopics">Wichtige Themen heute</label>
-          <textarea id="criticalTopics" data-save placeholder="z. B. 2 Krankmeldungen, 1 Kassenrückfrage, 3 Neukundenanfragen, Teamgespräch nötig"></textarea>
-        </div>
-        <div class="field" style="margin-top:12px;">
-          <label for="nextActions">Nächste verbindliche Schritte</label>
-          <textarea id="nextActions" data-save placeholder="z. B. Einsatzlücken bis 14:00 Uhr schließen, Bewerberinterviews terminieren, OP-Liste mit Tugce abstimmen"></textarea>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Kunde</th>
+                <th>Betrag</th>
+                <th>Segment</th>
+                <th>Quelle</th>
+              </tr>
+            </thead>
+            <tbody id="customerTableBody">
+              <tr><td colspan="4" class="muted">Noch keine Kunden erkannt.</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <div class="card span-6">
+      <div class="card span-12">
         <div class="section-head">
-          <h2>Interne Ansprechpartner</h2>
+          <h2>Rohtext aus PDF</h2>
+          <span class="small muted">Zur Fehlerkontrolle und Musteranpassung</span>
         </div>
-        <div class="list">
-          <div class="list-item"><strong>Björn Mertins</strong><span class="muted">Standortleitung / operative Steuerung</span></div>
-          <div class="list-item"><strong>Doreen Buchner</strong><span class="muted">Pflegedienstleitung / Qualität / Fachaufsicht</span></div>
-          <div class="list-item"><strong>Neele Mika</strong><span class="muted">Stellv. PDL / Vertretung / Einsatzunterstützung</span></div>
-          <div class="list-item"><strong>Tugce Vatansever</strong><span class="muted">Verwaltung / Abrechnung / Organisation</span></div>
-        </div>
+        <div class="summary mono" id="rawTextPreview">Noch keine PDF geladen.</div>
       </div>
     </div>
   </div>
 
   <script>
-    const ids = [
-      'locationName','leaderName','activeClients','careHoursSold','careHoursAvailable','hourRate',
-      'monthlyRevenue','monthlyCosts','openApplicants','openShifts','sickEmployees','cashDays',
-      'criticalTopics','nextActions'
-    ];
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.js';
+
+    const state = {
+      customers: [],
+      rawText: ''
+    };
 
     function todayGerman() {
-      return new Intl.DateTimeFormat('de-DE', {
-        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-      }).format(new Date());
+      return new Intl.DateTimeFormat('de-DE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(new Date());
     }
 
-    function getNum(id) {
-      return Number(document.getElementById(id).value || 0);
-    }
-
-    function getVal(id) {
-      return document.getElementById(id).value || '';
-    }
-
-    function formatCurrency(value) {
+    function euro(value) {
       return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(value || 0);
     }
 
-    function formatPercent(value) {
-      return `${(value || 0).toFixed(1)} %`;
+    function pct(part, total) {
+      return total > 0 ? `${((part / total) * 100).toFixed(1)} %` : '0,0 %';
     }
 
-    function saveData() {
-      const data = {};
-      ids.forEach(id => data[id] = getVal(id));
-      localStorage.setItem('standortleiterDashboardData', JSON.stringify(data));
+    function classify(amount) {
+      if (amount > 500) return 'A';
+      if (amount >= 400) return 'B';
+      if (amount >= 200) return 'C';
+      return 'D';
     }
 
-    function loadData() {
-      const raw = localStorage.getItem('standortleiterDashboardData');
-      if (!raw) return;
-      try {
-        const data = JSON.parse(raw);
-        ids.forEach(id => {
-          if (data[id] !== undefined) document.getElementById(id).value = data[id];
-        });
-      } catch (e) {
-        console.warn('Konnte gespeicherte Daten nicht laden.', e);
-      }
+    function parseEuro(raw) {
+      const cleaned = String(raw || '')
+        .replace(/€/g, '')
+        .replace(/\s/g, '')
+        .replace(/\.(?=\d{3}(\D|$))/g, '')
+        .replace(',', '.');
+      const num = Number(cleaned);
+      return Number.isFinite(num) ? num : NaN;
     }
 
-    function badgeForUtilization(util) {
-      if (util >= 85) return ['ok', 'Sehr gute Auslastung'];
-      if (util >= 70) return ['primary', 'Solide Auslastung'];
-      if (util >= 55) return ['warn', 'Auslastung erhöhen'];
-      return ['danger', 'Akuter Vertriebsdruck'];
+    function toLines(text) {
+      return text.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
     }
 
-    function badgeForMargin(margin) {
-      if (margin >= 20) return ['ok', 'Sehr gute Marge'];
-      if (margin >= 10) return ['primary', 'Stabile Marge'];
-      if (margin >= 0) return ['warn', 'Marge absichern'];
-      return ['danger', 'Negativer Deckungsbeitrag'];
+    function extractCustomers(text) {
+      const lines = toLines(text);
+      const amountRegex = new RegExp(document.getElementById('amountPattern').value, 'g');
+      const nameRegex = new RegExp(document.getElementById('namePattern').value);
+      const customers = [];
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const matches = [...line.matchAll(amountRegex)];
+        if (!matches.length) continue;
+
+        for (const match of matches) {
+          const amount = parseEuro(match[1] || match[0]);
+          if (!Number.isFinite(amount) || amount <= 0) continue;
+
+          let customer = '';
+          const currentNameCandidate = line.replace(match[0], '').replace(/[;|]/g, ' ').trim();
+          if (nameRegex.test(currentNameCandidate) && currentNameCandidate.length > 3) {
+            customer = currentNameCandidate;
+          }
+
+          if (!customer) {
+            for (let j = i - 1; j >= Math.max(0, i - 2); j--) {
+              if (nameRegex.test(lines[j])) {
+                customer = lines[j];
+                break;
+              }
+            }
+          }
+
+          if (!customer) {
+            const fallback = line.split(match[0])[0].trim();
+            if (fallback.length > 2) customer = fallback;
+          }
+
+          if (!customer) customer = `Unbekannter Kunde ${customers.length + 1}`;
+
+          customers.push({
+            customer,
+            amount,
+            segment: classify(amount),
+            source: line
+          });
+        }
+      }
+
+      const grouped = new Map();
+      for (const item of customers) {
+        const key = item.customer.toLowerCase();
+        if (!grouped.has(key) || grouped.get(key).amount < item.amount) {
+          grouped.set(key, item);
+        }
+      }
+      return [...grouped.values()].sort((a, b) => b.amount - a.amount);
     }
 
-    function buildPriorities(util, margin, openShifts, sick, cashDays, applicants) {
-      const list = [];
-
-      if (cashDays > 0 && cashDays < 21) {
-        list.push(['danger', 'Liquidität sichern', `Reichweite nur ${cashDays} Tage. Forderungsmanagement, Rechnungsfreigaben und Kostenstopp sofort prüfen.`]);
+    function renderCustomers(customers) {
+      const body = document.getElementById('customerTableBody');
+      if (!customers.length) {
+        body.innerHTML = '<tr><td colspan="4" class="muted">Keine verwertbaren Kunden erkannt.</td></tr>';
+        return;
       }
-      if (util < 70) {
-        list.push(['warn', 'Auslastung steigern', `Auslastung liegt bei ${util.toFixed(1)} %. Neukunden, Zusatzstunden und Tourenverdichtung priorisieren.`]);
-      }
-      if (margin < 10) {
-        list.push(['warn', 'Marge verbessern', `Aktuelle Monatsmarge ${margin.toFixed(1)} %. Stundensatz, Personaleinsatz und Leerlauf prüfen.`]);
-      }
-      if (openShifts > 0) {
-        list.push(['danger', 'Einsatzlücken schließen', `${openShifts} offene Dienste. Vertretung, Springer oder Umplanung sofort abstimmen.`]);
-      }
-      if (sick >= 2) {
-        list.push(['warn', 'Krankenquote steuern', `${sick} Krankmeldungen aktuell. Kundenkommunikation und Teamstabilisierung prüfen.`]);
-      }
-      if (applicants < 3) {
-        list.push(['primary', 'Recruiting nachziehen', `Nur ${applicants} offene Bewerber im Prozess. Sichtbarkeit und Reaktionsgeschwindigkeit erhöhen.`]);
-      }
-      if (list.length === 0) {
-        list.push(['ok', 'Lage stabil', 'Aktuell keine kritischen Kennzahlen. Fokus auf Wachstum, Qualität und Teamführung.']);
-      }
-      return list;
-    }
-
-    function renderPriorities(items) {
-      const box = document.getElementById('priorityList');
-      box.innerHTML = items.map(([tone, title, text]) => `
-        <div class="list-item">
-          <div class="pill ${tone}" style="margin-bottom:8px;">${title}</div>
-          <div class="small">${text}</div>
-        </div>
+      body.innerHTML = customers.map(item => `
+        <tr>
+          <td>${escapeHtml(item.customer)}</td>
+          <td>${euro(item.amount)}</td>
+          <td><span class="pill ${segmentTone(item.segment)}">${item.segment}</span></td>
+          <td class="mono">${escapeHtml(item.source)}</td>
+        </tr>
       `).join('');
     }
 
-    function updateDashboard() {
-      saveData();
-      document.getElementById('todayDate').textContent = todayGerman();
+    function segmentTone(segment) {
+      if (segment === 'A') return 'ok';
+      if (segment === 'B') return 'primary';
+      if (segment === 'C') return 'warn';
+      return 'danger';
+    }
 
-      const clients = getNum('activeClients');
-      const sold = getNum('careHoursSold');
-      const available = getNum('careHoursAvailable');
-      const revenue = getNum('monthlyRevenue');
-      const costs = getNum('monthlyCosts');
-      const applicants = getNum('openApplicants');
-      const openShifts = getNum('openShifts');
-      const sick = getNum('sickEmployees');
-      const cashDays = getNum('cashDays');
-      const rate = getNum('hourRate');
+    function buildPriorityList(counts, revenueTotal) {
+      const items = [];
+      const lowValueShare = counts.total ? (counts.C + counts.D) / counts.total : 0;
+      const highValueShare = counts.total ? counts.A / counts.total : 0;
 
-      const utilization = available > 0 ? (sold / available) * 100 : 0;
-      const margin = revenue > 0 ? ((revenue - costs) / revenue) * 100 : 0;
-      const contribution = revenue - costs;
+      if (counts.D >= 8 || lowValueShare > 0.5) {
+        items.push(['warn', 'Zu viele D- und C-Kunden', 'Zusatzleistungen, Stundenaufbau und Fallentwicklung bei kleinen Kunden prüfen.']);
+      }
+      if (counts.A <= 2 && counts.total >= 8) {
+        items.push(['danger', 'Zu wenig A-Kunden', 'Vertrieb auf höherwertige Versorgung, Leistungsverdichtung und Angehörigengespräche ausrichten.']);
+      }
+      if (highValueShare >= 0.35) {
+        items.push(['ok', 'Starker Premium-Anteil', 'A-Kunden stabil halten, Qualität sichern und Abwanderung vermeiden.']);
+      }
+      if (revenueTotal <= 0) {
+        items.push(['danger', 'Keine belastbare Umsatzbasis', 'PDF-Struktur prüfen oder Erkennungsmuster anpassen.']);
+      }
+      if (!items.length) {
+        items.push(['primary', 'Struktur grundsätzlich nutzbar', 'Nächster Hebel ist gezielte Entwicklung von C- zu B- und B- zu A-Kunden.']);
+      }
+      return items;
+    }
 
-      document.getElementById('kpiUtilization').textContent = formatPercent(utilization);
-      document.getElementById('kpiClients').textContent = clients.toString();
-      document.getElementById('kpiApplicants').textContent = applicants.toString();
-      document.getElementById('kpiMargin').textContent = formatPercent(margin);
+    function renderPriorities(items) {
+      document.getElementById('priorityList').innerHTML = items.map(([tone, title, text]) => `
+        <div class="list-item"><div class="pill ${tone}" style="margin-bottom:8px;">${title}</div><div class="small">${text}</div></div>
+      `).join('');
+    }
 
-      const [utilTone, utilText] = badgeForUtilization(utilization);
-      const utilBadge = document.getElementById('utilizationStatus');
-      utilBadge.className = `pill ${utilTone}`;
-      utilBadge.textContent = utilText;
+    function summarize(customers) {
+      const counts = { A: 0, B: 0, C: 0, D: 0, total: customers.length };
+      const revenues = { A: 0, B: 0, C: 0, D: 0, total: 0 };
 
-      const [marginTone, marginText] = badgeForMargin(margin);
-      const marginBadge = document.getElementById('marginStatus');
-      marginBadge.className = `pill ${marginTone}`;
-      marginBadge.textContent = marginText;
+      customers.forEach(c => {
+        counts[c.segment] += 1;
+        revenues[c.segment] += c.amount;
+        revenues.total += c.amount;
+      });
 
-      const priorities = buildPriorities(utilization, margin, openShifts, sick, cashDays, applicants);
-      renderPriorities(priorities);
+      document.getElementById('segmentA').textContent = counts.A;
+      document.getElementById('segmentB').textContent = counts.B;
+      document.getElementById('segmentC').textContent = counts.C;
+      document.getElementById('segmentD').textContent = counts.D;
+      document.getElementById('recognizedCount').textContent = `${counts.total} erkannte Kunden`;
 
-      const location = getVal('locationName') || 'Standort';
-      const leader = getVal('leaderName') || 'nicht eingetragen';
-      const criticalTopics = getVal('criticalTopics') || 'Keine Eingabe.';
-      const nextActions = getVal('nextActions') || 'Keine Eingabe.';
+      document.getElementById('mixByCount').textContent = `A ${pct(counts.A, counts.total)} | B ${pct(counts.B, counts.total)} | C ${pct(counts.C, counts.total)} | D ${pct(counts.D, counts.total)}`;
+      document.getElementById('mixByRevenue').textContent = `A ${pct(revenues.A, revenues.total)} | B ${pct(revenues.B, revenues.total)} | C ${pct(revenues.C, revenues.total)} | D ${pct(revenues.D, revenues.total)}`;
 
-      const summary =
+      let salesHint = 'PDF hochladen oder Erkennung prüfen.';
+      let opsHint = 'PDF hochladen oder Erkennung prüfen.';
+
+      if (counts.total) {
+        if ((counts.C + counts.D) > (counts.A + counts.B)) {
+          salesHint = 'Hoher Anteil kleiner Kunden. Fokus auf Leistungsaufbau, Pflegegradgespräche, Kombinationsleistungen und Angehörigenberatung.';
+        } else {
+          salesHint = 'Gute Wertstruktur. Fokus auf Halten, Empfehlungsmanagement und gezieltes Upgrading einzelner B- und C-Kunden.';
+        }
+
+        if (counts.A > 0) {
+          opsHint = 'A-Kunden eng betreuen, Ausfälle vermeiden, Qualität dokumentieren und Bindung absichern.';
+        } else {
+          opsHint = 'Keine A-Kunden erkannt. Betreuungskonzepte und Potenziale für Stundenaufbau systematisch prüfen.';
+        }
+      }
+
+      document.getElementById('salesHint').textContent = salesHint;
+      document.getElementById('opsHint').textContent = opsHint;
+
+      const topA = customers.filter(x => x.segment === 'A').slice(0, 5).map(x => `${x.customer} ${euro(x.amount)}`).join(', ') || 'keine';
+      const topRisk = customers.filter(x => x.segment === 'D').slice(0, 5).map(x => `${x.customer} ${euro(x.amount)}`).join(', ') || 'keine';
+      const location = document.getElementById('locationName').value || 'Standort';
+      const leader = document.getElementById('leaderName').value || 'nicht eingetragen';
+
+      document.getElementById('summaryBox').textContent =
 `Management-Update ${location}
 Datum: ${todayGerman()}
 Standortleiter: ${leader}
 
-1. Kernkennzahlen
-- Aktive Kunden: ${clients}
-- Verkaufte Stunden im Monat: ${sold}
-- Verfügbare Stunden im Monat: ${available}
-- Auslastung: ${utilization.toFixed(1)} %
-- Durchschnittlicher Stundensatz: ${formatCurrency(rate)}
-- Monatsumsatz: ${formatCurrency(revenue)}
-- Monatskosten: ${formatCurrency(costs)}
-- Deckungsbeitrag vor weiteren Effekten: ${formatCurrency(contribution)}
-- Monatsmarge: ${margin.toFixed(1)} %
-- Liquiditätsreichweite: ${cashDays} Tage
+Heimbas Rechnungsvorschau wurde analysiert.
+Erkannte Kunden: ${counts.total}
+Gesamtwert erkannter Kunden: ${euro(revenues.total)}
 
-2. Personal / Operative Lage
-- Offene Bewerber: ${applicants}
-- Offene Dienste: ${openShifts}
-- Krankmeldungen aktuell: ${sick}
+Kundenstruktur:
+- A-Kunden: ${counts.A} (${pct(counts.A, counts.total)})
+- B-Kunden: ${counts.B} (${pct(counts.B, counts.total)})
+- C-Kunden: ${counts.C} (${pct(counts.C, counts.total)})
+- D-Kunden: ${counts.D} (${pct(counts.D, counts.total)})
 
-3. Wichtigste Themen
-${criticalTopics}
+Umsatzstruktur:
+- A-Anteil: ${pct(revenues.A, revenues.total)}
+- B-Anteil: ${pct(revenues.B, revenues.total)}
+- C-Anteil: ${pct(revenues.C, revenues.total)}
+- D-Anteil: ${pct(revenues.D, revenues.total)}
 
-4. Nächste Schritte
-${nextActions}
+Wichtigste A-Kunden:
+${topA}
 
-5. Vertragsrahmen Standortleiter
-- Verträge intern bis 3.000 EUR
-- Zahlungen freigeben bis 5.000 EUR
-- Personalentscheidungen im Budgetrahmen
-- Keine Bankgeschäfte, Kredite oder Strukturänderungen
-- Unterzeichnung mit Zusatz „i.V.“`;
+Kleinste / entwicklungsbedürftige Kunden:
+${topRisk}
 
-      document.getElementById('summaryBox').textContent = summary;
+Vertriebsimpuls:
+${salesHint}
+
+Betreuungsimpuls:
+${opsHint}`;
+
+      renderPriorities(buildPriorityList(counts, revenues.total));
+    }
+
+    async function readPdf(file) {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let text = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        const pageText = content.items.map(item => item.str).join('\n');
+        text += `\n--- Seite ${i} ---\n${pageText}\n`;
+      }
+      return text;
+    }
+
+    async function handlePdfUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      document.getElementById('pdfStatus').textContent = `Analysiere ${file.name} ...`;
+      try {
+        const text = await readPdf(file);
+        state.rawText = text;
+        document.getElementById('manualText').value = text;
+        document.getElementById('rawTextPreview').textContent = text.slice(0, 12000) || 'Kein Text erkannt.';
+        const customers = extractCustomers(text);
+        state.customers = customers;
+        renderCustomers(customers);
+        summarize(customers);
+        document.getElementById('pdfStatus').textContent = `${file.name} erfolgreich analysiert.`;
+      } catch (error) {
+        console.error(error);
+        document.getElementById('pdfStatus').textContent = 'PDF konnte nicht ausgewertet werden.';
+        document.getElementById('rawTextPreview').textContent = 'Fehler bei der PDF-Auswertung. Möglicherweise ist die Vorschau bildbasiert oder das Layout weicht stark ab.';
+      }
+    }
+
+    function analyzeManualText() {
+      const text = document.getElementById('manualText').value || '';
+      state.rawText = text;
+      document.getElementById('rawTextPreview').textContent = text || 'Kein Text vorhanden.';
+      const customers = extractCustomers(text);
+      state.customers = customers;
+      renderCustomers(customers);
+      summarize(customers);
+      document.getElementById('pdfStatus').textContent = 'Text erneut ausgewertet.';
+    }
+
+    function loadDemoData() {
+      const demo = `Rechnungsvorschau
+Max Mustermann
+684,50 €
+Erika Beispiel
+455,00 €
+Hans Testkunde
+398,00 €
+Anna Sommer
+189,50 €
+Peter Winter
+520,00 €
+Sabine Blau
+210,00 €
+Mia Kurz
+95,00 €`;
+      document.getElementById('manualText').value = demo;
+      analyzeManualText();
     }
 
     function copySummary() {
-      const text = document.getElementById('summaryBox').textContent;
-      navigator.clipboard.writeText(text)
-        .then(() => alert('Management-Zusammenfassung wurde in die Zwischenablage kopiert.'))
-        .catch(() => alert('Kopieren nicht möglich. Bitte Text manuell markieren.'));
+      navigator.clipboard.writeText(document.getElementById('summaryBox').textContent)
+        .then(() => alert('Zusammenfassung wurde kopiert.'))
+        .catch(() => alert('Kopieren nicht möglich.'));
     }
 
-    function resetData() {
-      if (!confirm('Alle gespeicherten Dashboard-Daten wirklich löschen?')) return;
-      localStorage.removeItem('standortleiterDashboardData');
-      ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el.type === 'number') el.value = 0;
-        else if (id === 'locationName') el.value = 'Landsberg am Lech';
-        else el.value = '';
-      });
-      updateDashboard();
+    function resetAll() {
+      state.customers = [];
+      state.rawText = '';
+      document.getElementById('pdfUpload').value = '';
+      document.getElementById('manualText').value = '';
+      document.getElementById('rawTextPreview').textContent = 'Noch keine PDF geladen.';
+      document.getElementById('pdfStatus').textContent = 'Noch keine PDF hochgeladen.';
+      renderCustomers([]);
+      summarize([]);
     }
 
-    loadData();
-    ids.forEach(id => document.getElementById(id).addEventListener('input', updateDashboard));
-    updateDashboard();
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    document.getElementById('todayDate').textContent = todayGerman();
+    document.getElementById('pdfUpload').addEventListener('change', handlePdfUpload);
+    summarize([]);
   </script>
 </body>
 </html>
