@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Standortleiter Dashboard</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --primary: #0f766e;
+      --primary-soft: #ccfbf1;
+      --warn: #b45309;
+      --warn-soft: #fef3c7;
+      --danger: #b91c1c;
+      --danger-soft: #fee2e2;
+      --ok: #166534;
+      --ok-soft: #dcfce7;
+      --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .wrap {
+      max-width: 1450px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 22px;
+    }
+
+    .title h1 {
+      margin: 0;
+      font-size: 30px;
+      line-height: 1.1;
+    }
+
+    .title p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--primary);
+      color: white;
+      box-shadow: var(--shadow);
+    }
+
+    button.secondary {
+      background: white;
+      color: var(--text);
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(229,231,235,0.8);
+    }
+
+    .span-12 { grid-column: span 12; }
+    .span-8 { grid-column: span 8; }
+    .span-6 { grid-column: span 6; }
+    .span-4 { grid-column: span 4; }
+    .span-3 { grid-column: span 3; }
+
+    @media (max-width: 1100px) {
+      .span-8, .span-6, .span-4, .span-3 { grid-column: span 12; }
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .section-head h2, .section-head h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .muted { color: var(--muted); }
+    .small { font-size: 13px; }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 560px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+    }
+
+    .kpi {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      background: linear-gradient(180deg, #fff, #fbfdff);
+    }
+
+    .kpi .label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .kpi .value {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 7px 11px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .ok { background: var(--ok-soft); color: var(--ok); }
+    .warn { background: var(--warn-soft); color: var(--warn); }
+    .danger { background: var(--danger-soft); color: var(--danger); }
+    .primary { background: var(--primary-soft); color: var(--primary); }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    @media (max-width: 760px) {
+      .two-col { grid-template-columns: 1fr; }
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 760px) {
+      .field-grid { grid-template-columns: 1fr; }
+    }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      padding: 11px 12px;
+      font: inherit;
+      background: white;
+    }
+
+    textarea { min-height: 110px; resize: vertical; }
+
+    .list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .list-item {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      background: #fff;
+    }
+
+    .list-item strong { display: block; margin-bottom: 4px; }
+
+    .summary {
+      border: 1px dashed #9ca3af;
+      border-radius: 16px;
+      padding: 16px;
+      background: #fcfcfd;
+      white-space: pre-wrap;
+      line-height: 1.5;
+    }
+
+    .legal-box {
+      background: #fafafa;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .footer-note {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 12px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="title">
+        <h1>Standortleiter Dashboard</h1>
+        <p>Schnellübersicht für Steuerung, Prioritäten, Vertragsrahmen und Tagesgeschäft</p>
+      </div>
+      <div class="actions">
+        <button class="secondary" onclick="resetData()">Zurücksetzen</button>
+        <button class="secondary" onclick="window.print()">Drucken / PDF</button>
+        <button onclick="copySummary()">Management-Zusammenfassung kopieren</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card span-12">
+        <div class="section-head">
+          <h2>Heute im Blick</h2>
+          <span class="pill primary" id="todayDate"></span>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi">
+            <div class="label">Auslastung Betreuung</div>
+            <div class="value" id="kpiUtilization">0 %</div>
+            <div id="utilizationStatus" class="pill warn">Bitte Daten pflegen</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Aktive Kunden</div>
+            <div class="value" id="kpiClients">0</div>
+            <div class="small muted">Soll / Ist für schnellen Überblick</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Offene Bewerber</div>
+            <div class="value" id="kpiApplicants">0</div>
+            <div class="small muted">Zur Personalsteuerung</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Monatsmarge</div>
+            <div class="value" id="kpiMargin">0 %</div>
+            <div id="marginStatus" class="pill warn">Noch keine Aussage</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card span-8">
+        <div class="section-head">
+          <h2>Eingaben Tagesgeschäft</h2>
+          <span class="small muted">Diese Felder aktualisieren automatisch die Management-Zusammenfassung</span>
+        </div>
+        <div class="field-grid">
+          <div class="field">
+            <label for="locationName">Standort</label>
+            <input id="locationName" data-save value="Landsberg am Lech" />
+          </div>
+          <div class="field">
+            <label for="leaderName">Standortleiter</label>
+            <input id="leaderName" data-save placeholder="Name eintragen" />
+          </div>
+          <div class="field">
+            <label for="activeClients">Aktive Kunden</label>
+            <input id="activeClients" data-save type="number" value="0" />
+          </div>
+          <div class="field">
+            <label for="careHoursSold">Verkaufte Stunden / Monat</label>
+            <input id="careHoursSold" data-save type="number" value="0" />
+          </div>
+          <div class="field">
+            <label for="careHoursAvailable">Verfügbare Stunden / Monat</label>
+            <input id="careHoursAvailable" data-save type="number" value="0" />
+          </div>
+          <div class="field">
+            <label for="hourRate">Durchschnittlicher Stundensatz in EUR</label>
+            <input id="hourRate" data-save type="number" step="0.01" value="0" />
+          </div>
+          <div class="field">
+            <label for="monthlyRevenue">Monatsumsatz in EUR</label>
+            <input id="monthlyRevenue" data-save type="number" step="0.01" value="0" />
+          </div>
+          <div class="field">
+            <label for="monthlyCosts">Monatskosten in EUR</label>
+            <input id="monthlyCosts" data-save type="number" step="0.01" value="0" />
+          </div>
+          <div class="field">
+            <label for="openApplicants">Offene Bewerber</label>
+            <input id="openApplicants" data-save type="number" value="0" />
+          </div>
+          <div class="field">
+            <label for="openShifts">Offene Dienste / Einsätze</label>
+            <input id="openShifts" data-save type="number" value="0" />
+          </div>
+          <div class="field">
+            <label for="sickEmployees">Krankmeldungen aktuell</label>
+            <input id="sickEmployees" data-save type="number" value="0" />
+          </div>
+          <div class="field">
+            <label for="cashDays">Liquiditätsreichweite in Tagen</label>
+            <input id="cashDays" data-save type="number" value="0" />
+          </div>
+        </div>
+      </div>
+
+      <div class="card span-4">
+        <div class="section-head">
+          <h2>Automatische Prioritäten</h2>
+        </div>
+        <div class="list" id="priorityList"></div>
+        <div class="footer-note">Regel: geringe Auslastung, schwache Marge, offene Dienste und niedrige Liquiditätsreichweite werden automatisch hervorgehoben.</div>
+      </div>
+
+      <div class="card span-6">
+        <div class="section-head">
+          <h2>Vertrags-Schnellansicht Standortleiter</h2>
+          <span class="pill primary">Rechtsrahmen intern</span>
+        </div>
+        <div class="two-col">
+          <div class="legal-box">
+            <div><strong>Beginn Arbeitsverhältnis</strong><br><span class="muted">01.09.2025</span></div>
+            <div><strong>Probezeit</strong><br><span class="muted">6 Monate</span></div>
+            <div><strong>Arbeitszeit</strong><br><span class="muted">40 Stunden / Woche</span></div>
+            <div><strong>Bruttogehalt</strong><br><span class="muted">5.000 EUR / Monat</span></div>
+            <div><strong>Urlaub</strong><br><span class="muted">29 Arbeitstage / Jahr</span></div>
+          </div>
+          <div class="legal-box">
+            <div><strong>Verträge abschließen</strong><br><span class="muted">bis 3.000 EUR Einzelwert</span></div>
+            <div><strong>Zahlungen freigeben</strong><br><span class="muted">bis 5.000 EUR</span></div>
+            <div><strong>Personalentscheidungen</strong><br><span class="muted">im Budgetrahmen zulässig</span></div>
+            <div><strong>Ausgeschlossen</strong><br><span class="muted">Bankgeschäfte, Kredite, Strukturänderungen</span></div>
+            <div><strong>Unterschrift</strong><br><span class="muted">immer mit Zusatz „i.V.“</span></div>
+          </div>
+        </div>
+        <div class="footer-note">Nur interne Arbeitshilfe. Rechtliche Einzelfallprüfung, insbesondere bei Vollmacht, Arbeitszeit, Urlaub, Wettbewerbsverbot und Kündigung, sollte im Zweifel separat erfolgen.</div>
+      </div>
+
+      <div class="card span-6">
+        <div class="section-head">
+          <h2>Management-Zusammenfassung</h2>
+          <span class="small muted">Für GF, PDL, Stellv. PDL oder Verwaltungsübergabe</span>
+        </div>
+        <div class="summary" id="summaryBox"></div>
+      </div>
+
+      <div class="card span-6">
+        <div class="section-head">
+          <h2>Akute Themen / Maßnahmen</h2>
+        </div>
+        <div class="field">
+          <label for="criticalTopics">Wichtige Themen heute</label>
+          <textarea id="criticalTopics" data-save placeholder="z. B. 2 Krankmeldungen, 1 Kassenrückfrage, 3 Neukundenanfragen, Teamgespräch nötig"></textarea>
+        </div>
+        <div class="field" style="margin-top:12px;">
+          <label for="nextActions">Nächste verbindliche Schritte</label>
+          <textarea id="nextActions" data-save placeholder="z. B. Einsatzlücken bis 14:00 Uhr schließen, Bewerberinterviews terminieren, OP-Liste mit Tugce abstimmen"></textarea>
+        </div>
+      </div>
+
+      <div class="card span-6">
+        <div class="section-head">
+          <h2>Interne Ansprechpartner</h2>
+        </div>
+        <div class="list">
+          <div class="list-item"><strong>Björn Mertins</strong><span class="muted">Standortleitung / operative Steuerung</span></div>
+          <div class="list-item"><strong>Doreen Buchner</strong><span class="muted">Pflegedienstleitung / Qualität / Fachaufsicht</span></div>
+          <div class="list-item"><strong>Neele Mika</strong><span class="muted">Stellv. PDL / Vertretung / Einsatzunterstützung</span></div>
+          <div class="list-item"><strong>Tugce Vatansever</strong><span class="muted">Verwaltung / Abrechnung / Organisation</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ids = [
+      'locationName','leaderName','activeClients','careHoursSold','careHoursAvailable','hourRate',
+      'monthlyRevenue','monthlyCosts','openApplicants','openShifts','sickEmployees','cashDays',
+      'criticalTopics','nextActions'
+    ];
+
+    function todayGerman() {
+      return new Intl.DateTimeFormat('de-DE', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      }).format(new Date());
+    }
+
+    function getNum(id) {
+      return Number(document.getElementById(id).value || 0);
+    }
+
+    function getVal(id) {
+      return document.getElementById(id).value || '';
+    }
+
+    function formatCurrency(value) {
+      return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(value || 0);
+    }
+
+    function formatPercent(value) {
+      return `${(value || 0).toFixed(1)} %`;
+    }
+
+    function saveData() {
+      const data = {};
+      ids.forEach(id => data[id] = getVal(id));
+      localStorage.setItem('standortleiterDashboardData', JSON.stringify(data));
+    }
+
+    function loadData() {
+      const raw = localStorage.getItem('standortleiterDashboardData');
+      if (!raw) return;
+      try {
+        const data = JSON.parse(raw);
+        ids.forEach(id => {
+          if (data[id] !== undefined) document.getElementById(id).value = data[id];
+        });
+      } catch (e) {
+        console.warn('Konnte gespeicherte Daten nicht laden.', e);
+      }
+    }
+
+    function badgeForUtilization(util) {
+      if (util >= 85) return ['ok', 'Sehr gute Auslastung'];
+      if (util >= 70) return ['primary', 'Solide Auslastung'];
+      if (util >= 55) return ['warn', 'Auslastung erhöhen'];
+      return ['danger', 'Akuter Vertriebsdruck'];
+    }
+
+    function badgeForMargin(margin) {
+      if (margin >= 20) return ['ok', 'Sehr gute Marge'];
+      if (margin >= 10) return ['primary', 'Stabile Marge'];
+      if (margin >= 0) return ['warn', 'Marge absichern'];
+      return ['danger', 'Negativer Deckungsbeitrag'];
+    }
+
+    function buildPriorities(util, margin, openShifts, sick, cashDays, applicants) {
+      const list = [];
+
+      if (cashDays > 0 && cashDays < 21) {
+        list.push(['danger', 'Liquidität sichern', `Reichweite nur ${cashDays} Tage. Forderungsmanagement, Rechnungsfreigaben und Kostenstopp sofort prüfen.`]);
+      }
+      if (util < 70) {
+        list.push(['warn', 'Auslastung steigern', `Auslastung liegt bei ${util.toFixed(1)} %. Neukunden, Zusatzstunden und Tourenverdichtung priorisieren.`]);
+      }
+      if (margin < 10) {
+        list.push(['warn', 'Marge verbessern', `Aktuelle Monatsmarge ${margin.toFixed(1)} %. Stundensatz, Personaleinsatz und Leerlauf prüfen.`]);
+      }
+      if (openShifts > 0) {
+        list.push(['danger', 'Einsatzlücken schließen', `${openShifts} offene Dienste. Vertretung, Springer oder Umplanung sofort abstimmen.`]);
+      }
+      if (sick >= 2) {
+        list.push(['warn', 'Krankenquote steuern', `${sick} Krankmeldungen aktuell. Kundenkommunikation und Teamstabilisierung prüfen.`]);
+      }
+      if (applicants < 3) {
+        list.push(['primary', 'Recruiting nachziehen', `Nur ${applicants} offene Bewerber im Prozess. Sichtbarkeit und Reaktionsgeschwindigkeit erhöhen.`]);
+      }
+      if (list.length === 0) {
+        list.push(['ok', 'Lage stabil', 'Aktuell keine kritischen Kennzahlen. Fokus auf Wachstum, Qualität und Teamführung.']);
+      }
+      return list;
+    }
+
+    function renderPriorities(items) {
+      const box = document.getElementById('priorityList');
+      box.innerHTML = items.map(([tone, title, text]) => `
+        <div class="list-item">
+          <div class="pill ${tone}" style="margin-bottom:8px;">${title}</div>
+          <div class="small">${text}</div>
+        </div>
+      `).join('');
+    }
+
+    function updateDashboard() {
+      saveData();
+      document.getElementById('todayDate').textContent = todayGerman();
+
+      const clients = getNum('activeClients');
+      const sold = getNum('careHoursSold');
+      const available = getNum('careHoursAvailable');
+      const revenue = getNum('monthlyRevenue');
+      const costs = getNum('monthlyCosts');
+      const applicants = getNum('openApplicants');
+      const openShifts = getNum('openShifts');
+      const sick = getNum('sickEmployees');
+      const cashDays = getNum('cashDays');
+      const rate = getNum('hourRate');
+
+      const utilization = available > 0 ? (sold / available) * 100 : 0;
+      const margin = revenue > 0 ? ((revenue - costs) / revenue) * 100 : 0;
+      const contribution = revenue - costs;
+
+      document.getElementById('kpiUtilization').textContent = formatPercent(utilization);
+      document.getElementById('kpiClients').textContent = clients.toString();
+      document.getElementById('kpiApplicants').textContent = applicants.toString();
+      document.getElementById('kpiMargin').textContent = formatPercent(margin);
+
+      const [utilTone, utilText] = badgeForUtilization(utilization);
+      const utilBadge = document.getElementById('utilizationStatus');
+      utilBadge.className = `pill ${utilTone}`;
+      utilBadge.textContent = utilText;
+
+      const [marginTone, marginText] = badgeForMargin(margin);
+      const marginBadge = document.getElementById('marginStatus');
+      marginBadge.className = `pill ${marginTone}`;
+      marginBadge.textContent = marginText;
+
+      const priorities = buildPriorities(utilization, margin, openShifts, sick, cashDays, applicants);
+      renderPriorities(priorities);
+
+      const location = getVal('locationName') || 'Standort';
+      const leader = getVal('leaderName') || 'nicht eingetragen';
+      const criticalTopics = getVal('criticalTopics') || 'Keine Eingabe.';
+      const nextActions = getVal('nextActions') || 'Keine Eingabe.';
+
+      const summary =
+`Management-Update ${location}
+Datum: ${todayGerman()}
+Standortleiter: ${leader}
+
+1. Kernkennzahlen
+- Aktive Kunden: ${clients}
+- Verkaufte Stunden im Monat: ${sold}
+- Verfügbare Stunden im Monat: ${available}
+- Auslastung: ${utilization.toFixed(1)} %
+- Durchschnittlicher Stundensatz: ${formatCurrency(rate)}
+- Monatsumsatz: ${formatCurrency(revenue)}
+- Monatskosten: ${formatCurrency(costs)}
+- Deckungsbeitrag vor weiteren Effekten: ${formatCurrency(contribution)}
+- Monatsmarge: ${margin.toFixed(1)} %
+- Liquiditätsreichweite: ${cashDays} Tage
+
+2. Personal / Operative Lage
+- Offene Bewerber: ${applicants}
+- Offene Dienste: ${openShifts}
+- Krankmeldungen aktuell: ${sick}
+
+3. Wichtigste Themen
+${criticalTopics}
+
+4. Nächste Schritte
+${nextActions}
+
+5. Vertragsrahmen Standortleiter
+- Verträge intern bis 3.000 EUR
+- Zahlungen freigeben bis 5.000 EUR
+- Personalentscheidungen im Budgetrahmen
+- Keine Bankgeschäfte, Kredite oder Strukturänderungen
+- Unterzeichnung mit Zusatz „i.V.“`;
+
+      document.getElementById('summaryBox').textContent = summary;
+    }
+
+    function copySummary() {
+      const text = document.getElementById('summaryBox').textContent;
+      navigator.clipboard.writeText(text)
+        .then(() => alert('Management-Zusammenfassung wurde in die Zwischenablage kopiert.'))
+        .catch(() => alert('Kopieren nicht möglich. Bitte Text manuell markieren.'));
+    }
+
+    function resetData() {
+      if (!confirm('Alle gespeicherten Dashboard-Daten wirklich löschen?')) return;
+      localStorage.removeItem('standortleiterDashboardData');
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el.type === 'number') el.value = 0;
+        else if (id === 'locationName') el.value = 'Landsberg am Lech';
+        else el.value = '';
+      });
+      updateDashboard();
+    }
+
+    loadData();
+    ids.forEach(id => document.getElementById(id).addEventListener('input', updateDashboard));
+    updateDashboard();
+  </script>
+</body>
+</html>
