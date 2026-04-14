@@ -1,542 +1,969 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Standortleiter Dashboard – Heimbas PDF Analyse</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.js"></script>
-  <style>
-    :root {
-      --bg: #f5f7fb;
-      --card: #ffffff;
-      --text: #1f2937;
-      --muted: #6b7280;
-      --line: #e5e7eb;
-      --primary: #0f766e;
-      --primary-soft: #ccfbf1;
-      --warn: #b45309;
-      --warn-soft: #fef3c7;
-      --danger: #b91c1c;
-      --danger-soft: #fee2e2;
-      --ok: #166534;
-      --ok-soft: #dcfce7;
-      --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
-      --radius: 18px;
-    }
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: Inter, Arial, sans-serif; background: var(--bg); color: var(--text); }
-    .wrap { max-width: 1480px; margin: 0 auto; padding: 24px; }
-    .topbar { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center; margin-bottom: 22px; }
-    .title h1 { margin: 0; font-size: 30px; line-height: 1.1; }
-    .title p { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
-    .actions { display: flex; flex-wrap: wrap; gap: 10px; }
-    button, .file-label {
-      border: 0; border-radius: 12px; padding: 12px 16px; font-weight: 600; cursor: pointer;
-      background: var(--primary); color: white; box-shadow: var(--shadow); text-decoration: none; display: inline-flex; align-items: center;
-    }
-    button.secondary, .file-label.secondary { background: white; color: var(--text); border: 1px solid var(--line); box-shadow: none; }
-    input[type="file"] { display: none; }
-    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 18px; }
-    .card { background: var(--card); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); border: 1px solid rgba(229,231,235,0.8); }
-    .span-12 { grid-column: span 12; }
-    .span-8 { grid-column: span 8; }
-    .span-6 { grid-column: span 6; }
-    .span-4 { grid-column: span 4; }
-    .span-3 { grid-column: span 3; }
-    @media (max-width: 1100px) { .span-8, .span-6, .span-4, .span-3 { grid-column: span 12; } }
-    .section-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
-    .section-head h2, .section-head h3 { margin: 0; font-size: 18px; }
-    .muted { color: var(--muted); }
-    .small { font-size: 13px; }
-    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-    @media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 560px) { .kpi-grid { grid-template-columns: 1fr; } }
-    .kpi { border: 1px solid var(--line); border-radius: 16px; padding: 14px; background: linear-gradient(180deg, #fff, #fbfdff); }
-    .kpi .label { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
-    .kpi .value { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
-    .pill { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 7px 11px; font-size: 12px; font-weight: 700; }
-    .ok { background: var(--ok-soft); color: var(--ok); }
-    .warn { background: var(--warn-soft); color: var(--warn); }
-    .danger { background: var(--danger-soft); color: var(--danger); }
-    .primary { background: var(--primary-soft); color: var(--primary); }
-    .field-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    @media (max-width: 760px) { .field-grid { grid-template-columns: 1fr; } }
-    .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
-    input, textarea, select { width: 100%; border-radius: 12px; border: 1px solid var(--line); padding: 11px 12px; font: inherit; background: white; }
-    textarea { min-height: 100px; resize: vertical; }
-    .list { display: grid; gap: 10px; }
-    .list-item { border: 1px solid var(--line); border-radius: 14px; padding: 12px; background: #fff; }
-    .list-item strong { display: block; margin-bottom: 4px; }
-    .summary { border: 1px dashed #9ca3af; border-radius: 16px; padding: 16px; background: #fcfcfd; white-space: pre-wrap; line-height: 1.5; }
-    .legal-box { background: #fafafa; border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; gap: 10px; }
-    .footer-note { color: var(--muted); font-size: 12px; margin-top: 12px; line-height: 1.5; }
-    .table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 14px; }
-    table { width: 100%; border-collapse: collapse; background: white; }
-    th, td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; font-size: 14px; }
-    th { background: #f9fafb; position: sticky; top: 0; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Standortleiter Dashboard – KM Fürsorge GmbH</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.js"></script>
+<style>
+:root {
+  --bg: #f0ede8;
+  --surface: #faf9f7;
+  --card: #ffffff;
+  --text: #1a1a1a;
+  --muted: #7a7570;
+  --line: #e2ddd8;
+  --teal: #0f766e;
+  --teal-soft: #e6f4f3;
+  --blue: #185fa5;
+  --blue-soft: #e8f1fa;
+  --amber: #92400e;
+  --amber-soft: #fef3c7;
+  --red: #991b1b;
+  --red-soft: #fee2e2;
+  --green: #166534;
+  --green-soft: #dcfce7;
+  --accent: #0f766e;
+  --mono: 'DM Mono', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
+input[type=file] { display: none; }
+
+.page { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+
+/* Header */
+.header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px; flex-wrap: wrap; gap: 16px; }
+.header-left h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; }
+.header-left p { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.header-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Buttons */
+.btn { font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--text); transition: background .15s; }
+.btn:hover { background: var(--bg); }
+.btn-teal { background: var(--teal); color: #fff; border-color: var(--teal); }
+.btn-teal:hover { background: #0d6660; }
+.btn-blue { background: var(--blue); color: #fff; border-color: var(--blue); }
+.btn-blue:hover { background: #0c4f8a; }
+.file-btn { font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--text); transition: background .15s; }
+.file-btn:hover { background: var(--bg); }
+
+/* Status bar */
+.status-bar { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 9px 14px; font-size: 12px; color: var(--muted); margin-bottom: 20px; font-family: var(--mono); }
+
+/* System badges */
+.sys-row { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+.sys-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 500; border: 1px solid; }
+.sys-badge .dot { width: 7px; height: 7px; border-radius: 50%; }
+.sys-heimbas { background: var(--teal-soft); color: var(--teal); border-color: #a7d8d5; }
+.sys-heimbas .dot { background: var(--teal); }
+.sys-asbremen { background: var(--blue-soft); color: var(--blue); border-color: #a8c9eb; }
+.sys-asbremen .dot { background: var(--blue); }
+
+/* Section layout */
+.section { margin-bottom: 28px; }
+.section-title { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+
+/* KPI strip */
+.kpi-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.kpi { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+.kpi .k-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: .05em; }
+.kpi .k-val { font-size: 24px; font-weight: 600; letter-spacing: -0.5px; line-height: 1; }
+.kpi .k-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.kpi.kpi-green .k-val { color: var(--green); }
+.kpi.kpi-red .k-val { color: var(--red); }
+.kpi.kpi-amber .k-val { color: var(--amber); }
+.kpi.kpi-blue .k-val { color: var(--blue); }
+
+/* Two columns */
+.col2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media(max-width:640px){ .col2 { grid-template-columns: 1fr; } }
+
+/* Cards */
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
+.card-title { font-size: 13px; font-weight: 600; margin-bottom: 14px; color: var(--text); }
+
+/* Segment bar */
+.seg-bar-wrap { margin-bottom: 10px; }
+.seg-bar { display: flex; height: 12px; border-radius: 999px; overflow: hidden; margin-bottom: 8px; background: var(--line); }
+.seg-bar div { transition: width .5s ease; }
+.seg-legend { display: flex; flex-wrap: wrap; gap: 8px; }
+.seg-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); }
+.seg-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* Table */
+.tbl-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--line); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { padding: 8px 12px; text-align: left; background: var(--surface); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); border-bottom: 1px solid var(--line); }
+td { padding: 9px 12px; border-bottom: 1px solid var(--line); }
+tr:last-child td { border-bottom: none; }
+
+/* Badges */
+.badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+.b-A { background: var(--green-soft); color: var(--green); }
+.b-B { background: var(--blue-soft); color: var(--blue); }
+.b-C { background: var(--amber-soft); color: var(--amber); }
+.b-D { background: var(--red-soft); color: var(--red); }
+.b-ok { background: var(--green-soft); color: var(--green); }
+.b-open { background: var(--red-soft); color: var(--red); }
+.b-partial { background: var(--amber-soft); color: var(--amber); }
+
+/* Action cards */
+.actions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.action-card { border-radius: 12px; padding: 15px 16px; border: 1px solid; }
+.ac-teal { background: var(--teal-soft); border-color: #a7d8d5; }
+.ac-red { background: var(--red-soft); border-color: #fca5a5; }
+.ac-amber { background: var(--amber-soft); border-color: #fcd34d; }
+.ac-blue { background: var(--blue-soft); border-color: #a8c9eb; }
+.ac-green { background: var(--green-soft); border-color: #86efac; }
+.action-card .ac-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.ac-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.ac-icon svg { width: 15px; height: 15px; }
+.icon-teal { background: var(--teal); }
+.icon-red { background: var(--red); }
+.icon-amber { background: #b45309; }
+.icon-blue { background: var(--blue); }
+.icon-green { background: var(--green); }
+.action-card .ac-title { font-size: 13px; font-weight: 600; }
+.action-card .ac-title.t-teal { color: var(--teal); }
+.action-card .ac-title.t-red { color: var(--red); }
+.action-card .ac-title.t-amber { color: var(--amber); }
+.action-card .ac-title.t-blue { color: var(--blue); }
+.action-card .ac-title.t-green { color: var(--green); }
+.action-card .ac-body { font-size: 12px; color: var(--text); line-height: 1.5; }
+
+/* Auslastung bar */
+.ausl-bar-wrap { margin: 8px 0; }
+.ausl-track { background: var(--line); border-radius: 999px; height: 10px; overflow: hidden; }
+.ausl-fill { height: 100%; border-radius: 999px; background: var(--teal); transition: width .4s ease; }
+.ausl-fill.warn { background: #b45309; }
+.ausl-fill.danger { background: var(--red); }
+
+/* Summary */
+.summary-pre { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; font-size: 12px; font-family: var(--mono); white-space: pre-wrap; line-height: 1.6; color: var(--text); }
+
+/* Upload zones */
+.upload-zone { border: 1.5px dashed var(--line); border-radius: 12px; padding: 16px; text-align: center; cursor: pointer; background: var(--surface); transition: border-color .15s; }
+.upload-zone:hover { border-color: var(--teal); }
+.upload-zone p { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.upload-zone strong { color: var(--text); font-size: 13px; }
+
+/* Tabs */
+.tabs { display: flex; gap: 2px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 3px; margin-bottom: 16px; flex-wrap: wrap; }
+.tab { padding: 6px 14px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; background: transparent; color: var(--muted); transition: background .15s, color .15s; }
+.tab.active { background: var(--card); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+.footer { text-align: center; font-size: 11px; color: var(--muted); margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line); }
+
+/* Filters */
+.filter-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.filter-row select, .filter-row input[type=text] { font: inherit; font-size: 12px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--text); }
+.filter-row input[type=text] { flex: 1; min-width: 120px; }
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="topbar">
-      <div class="title">
-        <h1>Standortleiter Dashboard</h1>
-        <p>Heimbas Rechnungsvorschau hochladen, Kunden automatisch klassifizieren, Vertrieb und Betreuung sofort steuern</p>
-      </div>
-      <div class="actions">
-        <label class="file-label" for="pdfUpload">PDF Rechnungsvorschau hochladen</label>
-        <input id="pdfUpload" type="file" accept="application/pdf" />
-        <button class="secondary" onclick="window.print()">Drucken / PDF</button>
-        <button class="secondary" onclick="resetAll()">Zurücksetzen</button>
-        <button onclick="copySummary()">Zusammenfassung kopieren</button>
-      </div>
-    </div>
+<div class="page">
 
-    <div class="grid">
-      <div class="card span-12">
-        <div class="section-head">
-          <h2>Ablauf</h2>
-          <span class="pill primary" id="todayDate"></span>
-        </div>
-        <div class="list">
-          <div class="list-item"><strong>1. PDF aus Heimbas hochladen</strong><span class="muted">Rechnungsvorschau oder Rechnungsübersicht als PDF.</span></div>
-          <div class="list-item"><strong>2. Text wird automatisch analysiert</strong><span class="muted">Kundennamen und Beträge werden aus dem PDF gelesen.</span></div>
-          <div class="list-item"><strong>3. Kunden werden eingeteilt</strong><span class="muted">A &gt; 500 €, B 400–500 €, C 200–400 €, D 0–200 €.</span></div>
-          <div class="list-item"><strong>4. Standortleiter erhält Sofortauswertung</strong><span class="muted">Verteilung, Top-Kunden, Vertriebsimpulse, Management-Zusammenfassung.</span></div>
-        </div>
-      </div>
+<h2 class="sr-only">Standortleiter Dashboard – Heimbas und AS Bremen Auswertung mit Handlungsempfehlungen</h2>
 
-      <div class="card span-8">
-        <div class="section-head">
-          <h2>PDF-Analyse Heimbas</h2>
-          <span class="small muted" id="pdfStatus">Noch keine PDF hochgeladen.</span>
-        </div>
-        <div class="field-grid" style="margin-bottom:12px;">
-          <div class="field">
-            <label for="locationName">Standort</label>
-            <input id="locationName" value="Landsberg am Lech" />
-          </div>
-          <div class="field">
-            <label for="leaderName">Standortleiter</label>
-            <input id="leaderName" placeholder="Name eintragen" />
-          </div>
-        </div>
-        <div class="field-grid" style="margin-bottom:12px;">
-          <div class="field">
-            <label for="namePattern">Namens-Erkennung</label>
-            <input id="namePattern" value="^([A-ZÄÖÜ][A-Za-zÄÖÜäöüß\-]+(?:\s+[A-ZÄÖÜ][A-Za-zÄÖÜäöüß\-]+){0,3})$" />
-          </div>
-          <div class="field">
-            <label for="amountPattern">Betrags-Erkennung</label>
-            <input id="amountPattern" value="(-?\d{1,3}(?:\.\d{3})*,\d{2})\s*€?" />
-          </div>
-        </div>
-        <div class="field">
-          <label for="manualText">Optional: erkannter Text manuell prüfen / ergänzen</label>
-          <textarea id="manualText" placeholder="Hier erscheint der erkannte PDF-Text zur Kontrolle."></textarea>
-        </div>
-        <div class="actions" style="margin-top:12px;">
-          <button type="button" class="secondary" onclick="analyzeManualText()">Text erneut auswerten</button>
-          <button type="button" class="secondary" onclick="loadDemoData()">Demo-Daten laden</button>
-        </div>
-        <div class="footer-note">Hinweis: Heimbas-PDFs können je nach Layout unterschiedlich aufgebaut sein. Die automatische Erkennung ist daher heuristisch. Über die Prüfansicht kannst du Auffälligkeiten sofort sehen und das Regex-Muster anpassen.</div>
-      </div>
+<div class="header">
+  <div class="header-left">
+    <h1>Standortleiter Dashboard</h1>
+    <p id="todayStr">KM Fürsorge GmbH · Landsberg am Lech</p>
+  </div>
+  <div class="header-actions">
+    <button class="btn" onclick="loadDemo()">Demo laden</button>
+    <button class="btn btn-teal" onclick="copySummary()">Zusammenfassung kopieren</button>
+  </div>
+</div>
 
-      <div class="card span-4">
-        <div class="section-head">
-          <h2>Automatische Prioritäten</h2>
-        </div>
-        <div class="list" id="priorityList"></div>
-      </div>
+<!-- Upload-Bereich -->
+<div style="background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:20px 24px;margin-bottom:20px">
+  <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:14px">Daten importieren</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
 
-      <div class="card span-12">
-        <div class="section-head">
-          <h2>Kundensegmente A / B / C / D</h2>
-          <span class="pill primary" id="recognizedCount">0 erkannte Kunden</span>
-        </div>
-        <div class="kpi-grid">
-          <div class="kpi"><div class="label">A-Kunden</div><div class="value" id="segmentA">0</div><div class="small muted">über 500 €</div></div>
-          <div class="kpi"><div class="label">B-Kunden</div><div class="value" id="segmentB">0</div><div class="small muted">400 € bis 500 €</div></div>
-          <div class="kpi"><div class="label">C-Kunden</div><div class="value" id="segmentC">0</div><div class="small muted">200 € bis 399,99 €</div></div>
-          <div class="kpi"><div class="label">D-Kunden</div><div class="value" id="segmentD">0</div><div class="small muted">0 € bis 199,99 €</div></div>
-        </div>
+    <label for="uHeimbas" id="zoneHeimbas" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:2px dashed #a7d8d5;border-radius:12px;padding:18px 12px;cursor:pointer;background:var(--teal-soft);transition:border-color .15s;text-align:center">
+      <input id="uHeimbas" type="file" accept="application/pdf" onchange="loadHeimbasPdf(event)" />
+      <svg width="28" height="28" fill="none" stroke="#0f766e" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#0f766e">Heimbas – Rechnungsvorschau</div>
+        <div style="font-size:11px;color:#0f766e;opacity:.8;margin-top:2px">Kunden &amp; Umsätze · PDF</div>
       </div>
+      <div id="heimbasFileName" style="font-size:11px;color:#0f766e;font-weight:500;min-height:14px"></div>
+    </label>
 
-      <div class="card span-6">
-        <div class="section-head">
-          <h2>Verteilung & Steuerungsimpulse</h2>
-        </div>
-        <div class="legal-box">
-          <div><strong>Kundenmix</strong><br><span class="muted" id="mixByCount">Noch keine Auswertung.</span></div>
-          <div><strong>Umsatzmix</strong><br><span class="muted" id="mixByRevenue">Noch keine Auswertung.</span></div>
-          <div><strong>Vertriebsimpuls</strong><br><span class="muted" id="salesHint">Bitte PDF hochladen.</span></div>
-          <div><strong>Betreuungsimpuls</strong><br><span class="muted" id="opsHint">Bitte PDF hochladen.</span></div>
-        </div>
+    <label for="uHeimbasStunden" id="zoneHeimbasStunden" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:2px dashed #a7d8d5;border-radius:12px;padding:18px 12px;cursor:pointer;background:var(--teal-soft);transition:border-color .15s;text-align:center">
+      <input id="uHeimbasStunden" type="file" accept="application/pdf" onchange="loadHeimbasStundenPdf(event)" />
+      <svg width="28" height="28" fill="none" stroke="#0f766e" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#0f766e">Heimbas – Stunden / Mitarbeiter</div>
+        <div style="font-size:11px;color:#0f766e;opacity:.8;margin-top:2px">Terminierte Stunden &amp; Personal · PDF</div>
+        <div style="font-size:10px;color:#0f766e;opacity:.6;margin-top:3px;font-style:italic">ohne Fahrzeiten</div>
       </div>
+      <div id="heimbasStundenFileName" style="font-size:11px;color:#0f766e;font-weight:500;min-height:14px"></div>
+    </label>
 
-      <div class="card span-6">
-        <div class="section-head">
-          <h2>Management-Zusammenfassung</h2>
-        </div>
-        <div class="summary" id="summaryBox">Noch keine Auswertung.</div>
+    <label for="uAsPdf" id="zoneAsPdf" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:2px dashed #a8c9eb;border-radius:12px;padding:18px 12px;cursor:pointer;background:var(--blue-soft);transition:border-color .15s;text-align:center">
+      <input id="uAsPdf" type="file" accept="application/pdf" onchange="loadAsPdf(event)" />
+      <svg width="28" height="28" fill="none" stroke="#185fa5" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#185fa5">AS Bremen – Abrechnung</div>
+        <div style="font-size:11px;color:#185fa5;opacity:.8;margin-top:2px">Offene Posten &amp; Abrechnung · PDF</div>
       </div>
+      <div id="asPdfFileName" style="font-size:11px;color:#185fa5;font-weight:500;min-height:14px"></div>
+    </label>
 
-      <div class="card span-12">
-        <div class="section-head">
-          <h2>Erkannte Kundenliste</h2>
-          <span class="small muted">Diese Liste dient als Prüfansicht für automatische Zuordnung</span>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Kunde</th>
-                <th>Betrag</th>
-                <th>Segment</th>
-                <th>Quelle</th>
-              </tr>
-            </thead>
-            <tbody id="customerTableBody">
-              <tr><td colspan="4" class="muted">Noch keine Kunden erkannt.</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+  </div>
+  <div style="margin-top:12px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px">
+    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
+    Alle Daten bleiben lokal in Ihrem Browser – kein Server-Upload.
+  </div>
+</div>
 
-      <div class="card span-12">
-        <div class="section-head">
-          <h2>Rohtext aus PDF</h2>
-          <span class="small muted">Zur Fehlerkontrolle und Musteranpassung</span>
-        </div>
-        <div class="summary mono" id="rawTextPreview">Noch keine PDF geladen.</div>
-      </div>
+<div class="status-bar" id="statusBar">Bereit. Bitte oben eine Datei hochladen oder Demo laden.</div>
+
+<div class="sys-row">
+  <span class="sys-badge sys-heimbas"><span class="dot"></span>Heimbas</span>
+  <span class="sys-badge sys-asbremen"><span class="dot"></span>AS Bremen</span>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('uebersicht')">Übersicht</button>
+  <button class="tab" onclick="switchTab('kunden')">Kundenliste</button>
+  <button class="tab" onclick="switchTab('asbremen')">AS Bremen</button>
+  <button class="tab" onclick="switchTab('empfehlungen')">Handlungsempfehlungen</button>
+  <button class="tab" onclick="switchTab('mitarbeiter')">Stunden / Mitarbeiter</button>
+  <button class="tab" onclick="switchTab('rohtext')">Rohtext</button>
+  <button class="tab" onclick="switchTab('ausdruck')" style="margin-left:auto;color:var(--teal);font-weight:600">Ausdruck / 1-Seiter</button>
+</div>
+
+<!-- TAB: Übersicht -->
+<div id="tab-uebersicht" class="tab-panel active">
+
+  <div class="section">
+    <div class="section-title">Kennzahlen gesamt</div>
+    <div class="kpi-strip">
+      <div class="kpi"><div class="k-label">Kunden gesamt</div><div class="k-val" id="kTot">–</div><div class="k-sub">erkannte Datensätze</div></div>
+      <div class="kpi kpi-green"><div class="k-label">Gesamtumsatz</div><div class="k-val" id="kRev">–</div><div class="k-sub">Heimbas gesamt</div></div>
+      <div class="kpi kpi-blue"><div class="k-label">Ø Erlös / Kunde</div><div class="k-val" id="kAvg">–</div><div class="k-sub">Durchschnitt</div></div>
+      <div class="kpi kpi-green"><div class="k-label">A-Kunden</div><div class="k-val" id="kA">–</div><div class="k-sub">über 500 €</div></div>
+      <div class="kpi kpi-red"><div class="k-label">D-Kunden</div><div class="k-val" id="kD">–</div><div class="k-sub">unter 200 €</div></div>
+      <div class="kpi kpi-amber"><div class="k-label">Offene Posten</div><div class="k-val" id="kOp">–</div><div class="k-sub">AS Bremen</div></div>
     </div>
   </div>
 
-  <script>
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.js';
+  <div class="section">
+    <div class="section-title">Kundensegmentierung (Heimbas)</div>
+    <div class="card">
+      <div class="seg-bar-wrap">
+        <div class="seg-bar" id="segBar">
+          <div id="sb-A" style="width:0%;background:#166534"></div>
+          <div id="sb-B" style="width:0%;background:#185fa5"></div>
+          <div id="sb-C" style="width:0%;background:#92400e"></div>
+          <div id="sb-D" style="width:0%;background:#991b1b"></div>
+        </div>
+        <div class="seg-legend">
+          <span class="seg-item"><span class="seg-dot" style="background:#166534"></span>A &gt;500 € (<span id="lgA">0</span>)</span>
+          <span class="seg-item"><span class="seg-dot" style="background:#185fa5"></span>B 400–500 € (<span id="lgB">0</span>)</span>
+          <span class="seg-item"><span class="seg-dot" style="background:#92400e"></span>C 200–400 € (<span id="lgC">0</span>)</span>
+          <span class="seg-item"><span class="seg-dot" style="background:#991b1b"></span>D &lt;200 € (<span id="lgD">0</span>)</span>
+        </div>
+      </div>
+      <div style="margin-top:12px;font-size:12px;color:var(--muted)">Umsatzmix: <span id="revMix">–</span></div>
+    </div>
+  </div>
 
-    const state = {
-      customers: [],
-      rawText: ''
-    };
+  <div class="section">
+    <div class="section-title">Auslastung</div>
+    <div class="card" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <div style="flex:1;min-width:200px">
+        <div class="ausl-bar-wrap"><div class="ausl-track"><div class="ausl-fill" id="auslFill" style="width:0%"></div></div></div>
+        <div style="font-size:12px;color:var(--muted);margin-top:6px" id="auslNote">Heimbas Stunden-PDF hochladen oder im Tab "Stunden / Mitarbeiter" eintragen.</div>
+      </div>
+      <div style="font-size:28px;font-weight:600" id="auslPct">–</div>
+    </div>
+  </div>
 
-    function todayGerman() {
-      return new Intl.DateTimeFormat('de-DE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(new Date());
-    }
+  <div class="section">
+    <div class="section-title">Management-Zusammenfassung</div>
+    <div class="col2">
+      <div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+          <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px">Standort</label><input type="text" id="locName" value="Landsberg am Lech" oninput="buildSummary()" style="width:100%;font:inherit;font-size:12px;padding:6px 9px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--text)" /></div>
+          <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px">Standortleiter</label><input type="text" id="leadName" placeholder="Name" oninput="buildSummary()" style="width:100%;font:inherit;font-size:12px;padding:6px 9px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--text)" /></div>
+        </div>
+        <div class="summary-pre" id="summaryBox">Noch keine Auswertung.</div>
+      </div>
+      <div>
+        <div class="section-title" style="margin-bottom:8px">Prioritäten</div>
+        <div id="priorityList"><div style="font-size:13px;color:var(--muted)">Nach Datenladen automatisch.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
 
-    function euro(value) {
-      return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(value || 0);
-    }
+<!-- TAB: Kundenliste -->
+<div id="tab-kunden" class="tab-panel">
+  <div class="filter-row">
+    <select id="segFilter" onchange="renderTable()">
+      <option value="">Alle Segmente</option>
+      <option value="A">A-Kunden</option>
+      <option value="B">B-Kunden</option>
+      <option value="C">C-Kunden</option>
+      <option value="D">D-Kunden</option>
+    </select>
+    <input type="text" id="searchFilter" placeholder="Suche nach Name…" oninput="renderTable()" />
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Kunde</th><th>Betrag</th><th>Seg.</th><th>Rohdaten (Zeile)</th></tr></thead>
+      <tbody id="custBody"><tr><td colspan="4" style="color:var(--muted)">Noch keine Daten.</td></tr></tbody>
+    </table>
+  </div>
+</div>
 
-    function pct(part, total) {
-      return total > 0 ? `${((part / total) * 100).toFixed(1)} %` : '0,0 %';
-    }
+<!-- TAB: AS Bremen -->
+<div id="tab-asbremen" class="tab-panel">
+  <div style="margin-bottom:12px;font-size:13px;color:var(--muted)" id="asInfo">Noch kein AS-Bremen-Export geladen. CSV oder PDF hochladen.</div>
+  <div class="kpi-strip" style="margin-bottom:16px">
+    <div class="kpi kpi-amber"><div class="k-label">Offene Posten</div><div class="k-val" id="asOpTotal">–</div></div>
+    <div class="kpi kpi-green"><div class="k-label">Bezahlt</div><div class="k-val" id="asOkTotal">–</div></div>
+    <div class="kpi"><div class="k-label">Positionen gesamt</div><div class="k-val" id="asTot">–</div></div>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Kunde</th><th>Betrag</th><th>Status</th><th>Fällig</th></tr></thead>
+      <tbody id="asBody"><tr><td colspan="4" style="color:var(--muted)">Keine Daten.</td></tr></tbody>
+    </table>
+  </div>
+</div>
 
-    function classify(amount) {
-      if (amount > 500) return 'A';
-      if (amount >= 400) return 'B';
-      if (amount >= 200) return 'C';
-      return 'D';
-    }
+<!-- TAB: Handlungsempfehlungen -->
+<div id="tab-empfehlungen" class="tab-panel">
+  <div style="margin-bottom:16px;font-size:13px;color:var(--muted)">Automatisch generiert auf Basis der geladenen Daten.</div>
+  <div class="actions-grid" id="actionsGrid">
+    <div class="action-card ac-teal">
+      <div class="ac-head">
+        <div class="ac-icon icon-teal"><svg fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01"/><circle cx="12" cy="12" r="10"/></svg></div>
+        <div class="ac-title t-teal">Daten laden</div>
+      </div>
+      <div class="ac-body">Bitte Heimbas-PDF und/oder AS-Bremen-Export hochladen. Danach werden automatische Handlungsempfehlungen generiert.</div>
+    </div>
+  </div>
+</div>
 
-    function parseEuro(raw) {
-      const cleaned = String(raw || '')
-        .replace(/€/g, '')
-        .replace(/\s/g, '')
-        .replace(/\.(?=\d{3}(\D|$))/g, '')
-        .replace(',', '.');
-      const num = Number(cleaned);
-      return Number.isFinite(num) ? num : NaN;
-    }
+<!-- TAB: Stunden / Mitarbeiter -->
+<div id="tab-mitarbeiter" class="tab-panel">
+  <div style="margin-bottom:14px;font-size:13px;color:var(--muted)">Aus dem Heimbas Stunden/Mitarbeiter-Export automatisch befüllt. Werte manuell anpassbar.</div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-title">Auslastung</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+      <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Gebuchte Stunden</label><input type="text" id="hBooked" placeholder="z. B. 340" oninput="calcAusl()" style="width:100%;font:inherit;font-size:13px;padding:6px 9px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--text)" /></div>
+      <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Erbrachte Stunden</label><input type="text" id="hDone" placeholder="z. B. 318" oninput="calcAusl()" style="width:100%;font:inherit;font-size:13px;padding:6px 9px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--text)" /></div>
+      <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Auslastung</label><div style="font-size:20px;font-weight:600;padding-top:6px" id="auslPct">–</div></div>
+    </div>
+    <div class="ausl-bar-wrap"><div class="ausl-track"><div class="ausl-fill" id="auslFill" style="width:0%"></div></div></div>
+    <div style="font-size:12px;color:var(--muted);margin-top:6px" id="auslNote">Bitte Stunden eingeben oder Heimbas-Stunden-PDF hochladen.</div>
+  </div>
+  <div class="card">
+    <div class="card-title">Erkannte Mitarbeiter / Stunden</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Mitarbeiter</th><th>Stunden</th><th>Typ</th><th>Datum</th></tr></thead>
+        <tbody id="maBody"><tr><td colspan="4" style="color:var(--muted)">Heimbas Stunden/Mitarbeiter-PDF hochladen.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
-    function toLines(text) {
-      return text.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
-    }
+<!-- TAB: Rohtext -->
+<div id="tab-rohtext" class="tab-panel">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+    <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Regex – Namen</label><input type="text" id="nameRx" value="^([A-ZÄÖÜ][A-Za-zÄÖÜäöüß\-]+(?:\s+[A-ZÄÖÜ][A-Za-zÄÖÜäöüß\-]+){0,3})$" style="width:100%;font:inherit;font-size:12px;padding:6px 9px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--text)" /></div>
+    <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Regex – Beträge</label><input type="text" id="amountRx" value="(-?\d{1,3}(?:\.\d{3})*,\d{2})\s*€?" style="width:100%;font:inherit;font-size:12px;padding:6px 9px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--text)" /></div>
+  </div>
+  <textarea id="rawTA" style="width:100%;font:DM Mono,monospace;font-size:11px;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--text);min-height:180px;resize:vertical;margin-bottom:10px" placeholder="Hier erscheint der extrahierte PDF-Text zur Prüfung."></textarea>
+  <button class="btn btn-teal" onclick="reanalyze()">Erneut auswerten</button>
+</div>
 
-    function extractCustomers(text) {
-      const lines = toLines(text);
-      const amountRegex = new RegExp(document.getElementById('amountPattern').value, 'g');
-      const nameRegex = new RegExp(document.getElementById('namePattern').value);
-      const customers = [];
+<!-- TAB: Ausdruck -->
+<div id="tab-ausdruck" class="tab-panel">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+    <div style="font-size:13px;color:var(--muted)">Druckoptimierter 1-Seiter – direkt ausdrucken oder als PDF speichern.</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-teal" onclick="window.print()">Drucken / Als PDF speichern</button>
+      <button class="btn" onclick="copyPrintText()">Text kopieren</button>
+    </div>
+  </div>
 
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        const matches = [...line.matchAll(amountRegex)];
-        if (!matches.length) continue;
+  <div id="printSheet" style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:36px 40px;max-width:780px;margin:0 auto;font-family:'DM Sans',sans-serif">
 
-        for (const match of matches) {
-          const amount = parseEuro(match[1] || match[0]);
-          if (!Number.isFinite(amount) || amount <= 0) continue;
+    <!-- Print header -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0f766e;padding-bottom:14px;margin-bottom:20px">
+      <div>
+        <div style="font-size:20px;font-weight:700;letter-spacing:-.5px;color:#0f766e" id="pr-title">Management-Report</div>
+        <div style="font-size:13px;color:#7a7570;margin-top:3px" id="pr-sub">KM Fürsorge GmbH · Landsberg am Lech</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:12px;color:#7a7570" id="pr-date"></div>
+        <div style="font-size:12px;color:#7a7570" id="pr-lead"></div>
+      </div>
+    </div>
 
-          let customer = '';
-          const currentNameCandidate = line.replace(match[0], '').replace(/[;|]/g, ' ').trim();
-          if (nameRegex.test(currentNameCandidate) && currentNameCandidate.length > 3) {
-            customer = currentNameCandidate;
-          }
+    <!-- KPI row -->
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px" id="pr-kpi-row">
+      <div style="background:#f0ede8;border-radius:10px;padding:12px 10px;text-align:center">
+        <div style="font-size:10px;color:#7a7570;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Kunden</div>
+        <div style="font-size:22px;font-weight:700;color:#1a1a1a" id="pr-k-tot">–</div>
+      </div>
+      <div style="background:#f0ede8;border-radius:10px;padding:12px 10px;text-align:center">
+        <div style="font-size:10px;color:#7a7570;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Gesamtumsatz</div>
+        <div style="font-size:16px;font-weight:700;color:#166534" id="pr-k-rev">–</div>
+      </div>
+      <div style="background:#f0ede8;border-radius:10px;padding:12px 10px;text-align:center">
+        <div style="font-size:10px;color:#7a7570;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Ø Erlös</div>
+        <div style="font-size:16px;font-weight:700;color:#185fa5" id="pr-k-avg">–</div>
+      </div>
+      <div style="background:#f0ede8;border-radius:10px;padding:12px 10px;text-align:center">
+        <div style="font-size:10px;color:#7a7570;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Auslastung</div>
+        <div style="font-size:16px;font-weight:700" id="pr-k-ausl">–</div>
+      </div>
+      <div style="background:#f0ede8;border-radius:10px;padding:12px 10px;text-align:center">
+        <div style="font-size:10px;color:#7a7570;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Offene Posten</div>
+        <div style="font-size:16px;font-weight:700;color:#991b1b" id="pr-k-op">–</div>
+      </div>
+    </div>
 
-          if (!customer) {
-            for (let j = i - 1; j >= Math.max(0, i - 2); j--) {
-              if (nameRegex.test(lines[j])) {
-                customer = lines[j];
-                break;
-              }
-            }
-          }
+    <!-- Segment visual -->
+    <div style="margin-bottom:20px">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#7a7570;margin-bottom:8px">Kundensegmente (Heimbas)</div>
+      <div style="display:flex;height:16px;border-radius:999px;overflow:hidden;background:#e2ddd8;margin-bottom:8px">
+        <div id="pr-sb-A" style="width:0%;background:#166534;transition:width .4s"></div>
+        <div id="pr-sb-B" style="width:0%;background:#185fa5;transition:width .4s"></div>
+        <div id="pr-sb-C" style="width:0%;background:#92400e;transition:width .4s"></div>
+        <div id="pr-sb-D" style="width:0%;background:#991b1b;transition:width .4s"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px" id="pr-seg-cards"></div>
+    </div>
 
-          if (!customer) {
-            const fallback = line.split(match[0])[0].trim();
-            if (fallback.length > 2) customer = fallback;
-          }
+    <!-- Two column: top customers + AS Bremen -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+      <div>
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#7a7570;margin-bottom:8px">Top-Kunden (A-Segment)</div>
+        <div id="pr-top-customers" style="font-size:12px"></div>
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#7a7570;margin-bottom:8px">AS Bremen – Offene Posten</div>
+        <div id="pr-as-open" style="font-size:12px"></div>
+      </div>
+    </div>
 
-          if (!customer) customer = `Unbekannter Kunde ${customers.length + 1}`;
+    <!-- Handlungsempfehlungen -->
+    <div style="margin-bottom:20px">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#7a7570;margin-bottom:8px">Handlungsempfehlungen</div>
+      <div id="pr-actions" style="display:grid;gap:7px"></div>
+    </div>
 
-          customers.push({
-            customer,
-            amount,
-            segment: classify(amount),
-            source: line
-          });
-        }
-      }
+    <!-- Footer line -->
+    <div style="border-top:1px solid #e2ddd8;padding-top:12px;display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:10px;color:#7a7570">KM Fürsorge GmbH · Landsberg am Lech · Vertraulich</div>
+      <div style="font-size:10px;color:#7a7570">Heimbas + AS Bremen + Heimbas + AS Bremen</div>
+    </div>
 
-      const grouped = new Map();
-      for (const item of customers) {
-        const key = item.customer.toLowerCase();
-        if (!grouped.has(key) || grouped.get(key).amount < item.amount) {
-          grouped.set(key, item);
-        }
-      }
-      return [...grouped.values()].sort((a, b) => b.amount - a.amount);
-    }
+  </div>
+</div>
 
-    function renderCustomers(customers) {
-      const body = document.getElementById('customerTableBody');
-      if (!customers.length) {
-        body.innerHTML = '<tr><td colspan="4" class="muted">Keine verwertbaren Kunden erkannt.</td></tr>';
-        return;
-      }
-      body.innerHTML = customers.map(item => `
-        <tr>
-          <td>${escapeHtml(item.customer)}</td>
-          <td>${euro(item.amount)}</td>
-          <td><span class="pill ${segmentTone(item.segment)}">${item.segment}</span></td>
-          <td class="mono">${escapeHtml(item.source)}</td>
-        </tr>
-      `).join('');
-    }
+<style>
+@media print {
+  body { background: #fff !important; }
+  .header, .status-bar, .sys-row, .tabs, .tab-panel:not(#tab-ausdruck),
+  .footer, .header-actions, button, .file-btn { display: none !important; }
+  #tab-ausdruck { display: block !important; }
+  .page { padding: 0 !important; max-width: 100% !important; }
+  #printSheet { border: none !important; border-radius: 0 !important; padding: 20px 24px !important; max-width: 100% !important; box-shadow: none !important; }
+  #tab-ausdruck > div:first-child { display: none !important; }
+}
+</style>
 
-    function segmentTone(segment) {
-      if (segment === 'A') return 'ok';
-      if (segment === 'B') return 'primary';
-      if (segment === 'C') return 'warn';
-      return 'danger';
-    }
+<script>
+function buildPrint(){
+  const c=S.customers;
+  const tot=c.length;
+  const loc=document.getElementById('locName').value||'Landsberg am Lech';
+  const lead=document.getElementById('leadName').value||'';
 
-    function buildPriorityList(counts, revenueTotal) {
-      const items = [];
-      const lowValueShare = counts.total ? (counts.C + counts.D) / counts.total : 0;
-      const highValueShare = counts.total ? counts.A / counts.total : 0;
+  document.getElementById('pr-title').textContent='Management-Report · '+loc;
+  document.getElementById('pr-sub').textContent='KM Fürsorge GmbH · Standort '+loc;
+  document.getElementById('pr-date').textContent=todayDE();
+  document.getElementById('pr-lead').textContent=lead?'Standortleiter: '+lead:'';
 
-      if (counts.D >= 8 || lowValueShare > 0.5) {
-        items.push(['warn', 'Zu viele D- und C-Kunden', 'Zusatzleistungen, Stundenaufbau und Fallentwicklung bei kleinen Kunden prüfen.']);
-      }
-      if (counts.A <= 2 && counts.total >= 8) {
-        items.push(['danger', 'Zu wenig A-Kunden', 'Vertrieb auf höherwertige Versorgung, Leistungsverdichtung und Angehörigengespräche ausrichten.']);
-      }
-      if (highValueShare >= 0.35) {
-        items.push(['ok', 'Starker Premium-Anteil', 'A-Kunden stabil halten, Qualität sichern und Abwanderung vermeiden.']);
-      }
-      if (revenueTotal <= 0) {
-        items.push(['danger', 'Keine belastbare Umsatzbasis', 'PDF-Struktur prüfen oder Erkennungsmuster anpassen.']);
-      }
-      if (!items.length) {
-        items.push(['primary', 'Struktur grundsätzlich nutzbar', 'Nächster Hebel ist gezielte Entwicklung von C- zu B- und B- zu A-Kunden.']);
-      }
-      return items;
-    }
+  if(!tot){
+    document.getElementById('pr-k-tot').textContent='–';
+    return;
+  }
 
-    function renderPriorities(items) {
-      document.getElementById('priorityList').innerHTML = items.map(([tone, title, text]) => `
-        <div class="list-item"><div class="pill ${tone}" style="margin-bottom:8px;">${title}</div><div class="small">${text}</div></div>
-      `).join('');
-    }
+  const rev=c.reduce((s,x)=>s+x.amount,0);
+  const avg=rev/tot;
+  const counts={A:0,B:0,C:0,D:0};
+  const revs={A:0,B:0,C:0,D:0};
+  c.forEach(x=>{counts[x.segment]++;revs[x.segment]+=x.amount});
 
-    function summarize(customers) {
-      const counts = { A: 0, B: 0, C: 0, D: 0, total: customers.length };
-      const revenues = { A: 0, B: 0, C: 0, D: 0, total: 0 };
+  const opTotal=S.asData.filter(x=>!x.status.toLowerCase().includes('bezahlt')).reduce((s,x)=>s+x.amt,0);
+  const auslR=S.hBooked>0?((S.hDone/S.hBooked)*100):null;
 
-      customers.forEach(c => {
-        counts[c.segment] += 1;
-        revenues[c.segment] += c.amount;
-        revenues.total += c.amount;
-      });
+  document.getElementById('pr-k-tot').textContent=tot;
+  document.getElementById('pr-k-rev').textContent=fmt(rev);
+  document.getElementById('pr-k-avg').textContent=fmt(avg);
+  document.getElementById('pr-k-op').textContent=S.asData.length?fmt(opTotal):'–';
 
-      document.getElementById('segmentA').textContent = counts.A;
-      document.getElementById('segmentB').textContent = counts.B;
-      document.getElementById('segmentC').textContent = counts.C;
-      document.getElementById('segmentD').textContent = counts.D;
-      document.getElementById('recognizedCount').textContent = `${counts.total} erkannte Kunden`;
+  const auslEl=document.getElementById('pr-k-ausl');
+  if(auslR!==null){
+    auslEl.textContent=auslR.toFixed(1)+'\u202f%';
+    auslEl.style.color=auslR<90?'#991b1b':auslR<96?'#92400e':'#166534';
+  } else { auslEl.textContent='–'; auslEl.style.color='#7a7570'; }
 
-      document.getElementById('mixByCount').textContent = `A ${pct(counts.A, counts.total)} | B ${pct(counts.B, counts.total)} | C ${pct(counts.C, counts.total)} | D ${pct(counts.D, counts.total)}`;
-      document.getElementById('mixByRevenue').textContent = `A ${pct(revenues.A, revenues.total)} | B ${pct(revenues.B, revenues.total)} | C ${pct(revenues.C, revenues.total)} | D ${pct(revenues.D, revenues.total)}`;
+  ['A','B','C','D'].forEach(s=>{
+    document.getElementById('pr-sb-'+s).style.width=pct(counts[s],tot);
+  });
 
-      let salesHint = 'PDF hochladen oder Erkennung prüfen.';
-      let opsHint = 'PDF hochladen oder Erkennung prüfen.';
+  const segColors={A:{bg:'#dcfce7',col:'#166534'},B:{bg:'#e8f1fa',col:'#185fa5'},C:{bg:'#fef3c7',col:'#92400e'},D:{bg:'#fee2e2',col:'#991b1b'}};
+  const segLabels={A:'>500 €',B:'400–500 €',C:'200–400 €',D:'<200 €'};
+  document.getElementById('pr-seg-cards').innerHTML=['A','B','C','D'].map(s=>`
+    <div style="background:${segColors[s].bg};border-radius:8px;padding:10px;text-align:center">
+      <div style="font-size:18px;font-weight:700;color:${segColors[s].col}">${counts[s]}</div>
+      <div style="font-size:10px;font-weight:600;color:${segColors[s].col};margin-top:2px">Seg. ${s}</div>
+      <div style="font-size:10px;color:${segColors[s].col};opacity:.8">${segLabels[s]}</div>
+      <div style="font-size:10px;color:${segColors[s].col};opacity:.7;margin-top:2px">${pct(revs[s],rev)} Umsatz</div>
+    </div>`).join('');
 
-      if (counts.total) {
-        if ((counts.C + counts.D) > (counts.A + counts.B)) {
-          salesHint = 'Hoher Anteil kleiner Kunden. Fokus auf Leistungsaufbau, Pflegegradgespräche, Kombinationsleistungen und Angehörigenberatung.';
-        } else {
-          salesHint = 'Gute Wertstruktur. Fokus auf Halten, Empfehlungsmanagement und gezieltes Upgrading einzelner B- und C-Kunden.';
-        }
+  const topA=c.filter(x=>x.segment==='A').slice(0,6);
+  document.getElementById('pr-top-customers').innerHTML=topA.length
+    ? topA.map(x=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0ede8"><span style="color:#1a1a1a">${esc(x.customer)}</span><span style="font-weight:600;color:#166534">${fmt(x.amount)}</span></div>`).join('')
+    : '<div style="color:#7a7570">Keine A-Kunden erkannt.</div>';
 
-        if (counts.A > 0) {
-          opsHint = 'A-Kunden eng betreuen, Ausfälle vermeiden, Qualität dokumentieren und Bindung absichern.';
-        } else {
-          opsHint = 'Keine A-Kunden erkannt. Betreuungskonzepte und Potenziale für Stundenaufbau systematisch prüfen.';
-        }
-      }
+  const openItems=S.asData.filter(x=>!x.status.toLowerCase().includes('bezahlt')).slice(0,6);
+  document.getElementById('pr-as-open').innerHTML=openItems.length
+    ? openItems.map(x=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0ede8"><span style="color:#1a1a1a">${esc(x.name)}</span><span style="font-weight:600;color:#991b1b">${fmt(x.amt)}</span></div>`).join('')
+    : '<div style="color:#7a7570">Keine offenen Posten.</div>';
 
-      document.getElementById('salesHint').textContent = salesHint;
-      document.getElementById('opsHint').textContent = opsHint;
+  const actionItems=[];
+  const cdShare=(counts.C+counts.D)/Math.max(tot,1);
+  const aShare=counts.A/Math.max(tot,1);
+  if(counts.A<=2&&tot>=6)actionItems.push({p:'SOFORT',col:'#991b1b',bg:'#fee2e2',t:'A-Kunden aufbauen',b:'Nur '+counts.A+' A-Kunden. Leistungsverdichtung und Pflegegradgespräche einleiten.'});
+  if(cdShare>0.5)actionItems.push({p:'WICHTIG',col:'#92400e',bg:'#fef3c7',t:'C/D-Kunden entwickeln',b:Math.round(cdShare*100)+'\u202f% kleine Kunden. Systematisches Upgrading starten.'});
+  if(opTotal>500)actionItems.push({p:'WICHTIG',col:'#92400e',bg:'#fef3c7',t:'Offene Posten klären',b:'Ausstehend: '+fmt(opTotal)+'. Mahnlauf und Klärungsgespräche einleiten.'});
+  if(auslR!==null&&auslR<90)actionItems.push({p:'SOFORT',col:'#991b1b',bg:'#fee2e2',t:'Auslastung kritisch',b:auslR.toFixed(1)+'\u202f% Auslastung. Ursachen analysieren und Einsatzplanung anpassen.'});
+  if(aShare>=0.3)actionItems.push({p:'GUT',col:'#166534',bg:'#dcfce7',t:'Premium-Basis sichern',b:counts.A+' A-Kunden vorhanden. Qualität halten, Empfehlungsmanagement aktivieren.'});
+  if(counts.B>=2)actionItems.push({p:'CHANCEN',col:'#185fa5',bg:'#e8f1fa',t:'B-Kunden upgraden',b:counts.B+' Kunden nah an A-Schwelle. Angehörigengespräche und Zusatzleistungen anbieten.'});
+  if(!actionItems.length)actionItems.push({p:'OK',col:'#0f766e',bg:'#e6f4f3',t:'Struktur im Zielbereich',b:'Kundenmix und Umsatz grundsätzlich stabil. Fokus: Upgrading und Stabilisierung.'});
 
-      const topA = customers.filter(x => x.segment === 'A').slice(0, 5).map(x => `${x.customer} ${euro(x.amount)}`).join(', ') || 'keine';
-      const topRisk = customers.filter(x => x.segment === 'D').slice(0, 5).map(x => `${x.customer} ${euro(x.amount)}`).join(', ') || 'keine';
-      const location = document.getElementById('locationName').value || 'Standort';
-      const leader = document.getElementById('leaderName').value || 'nicht eingetragen';
+  document.getElementById('pr-actions').innerHTML=actionItems.map(a=>`
+    <div style="display:flex;gap:10px;align-items:flex-start;background:${a.bg};border-radius:8px;padding:9px 12px">
+      <span style="font-size:9px;font-weight:700;letter-spacing:.06em;color:${a.col};background:${a.bg};border:1px solid ${a.col};border-radius:4px;padding:2px 6px;white-space:nowrap;margin-top:1px">${a.p}</span>
+      <div><div style="font-size:12px;font-weight:600;color:${a.col};margin-bottom:2px">${esc(a.t)}</div><div style="font-size:11px;color:#1a1a1a;line-height:1.4">${esc(a.b)}</div></div>
+    </div>`).join('');
+}
 
-      document.getElementById('summaryBox').textContent =
-`Management-Update ${location}
-Datum: ${todayGerman()}
-Standortleiter: ${leader}
-
-Heimbas Rechnungsvorschau wurde analysiert.
-Erkannte Kunden: ${counts.total}
-Gesamtwert erkannter Kunden: ${euro(revenues.total)}
-
-Kundenstruktur:
-- A-Kunden: ${counts.A} (${pct(counts.A, counts.total)})
-- B-Kunden: ${counts.B} (${pct(counts.B, counts.total)})
-- C-Kunden: ${counts.C} (${pct(counts.C, counts.total)})
-- D-Kunden: ${counts.D} (${pct(counts.D, counts.total)})
-
-Umsatzstruktur:
-- A-Anteil: ${pct(revenues.A, revenues.total)}
-- B-Anteil: ${pct(revenues.B, revenues.total)}
-- C-Anteil: ${pct(revenues.C, revenues.total)}
-- D-Anteil: ${pct(revenues.D, revenues.total)}
-
-Wichtigste A-Kunden:
-${topA}
-
-Kleinste / entwicklungsbedürftige Kunden:
-${topRisk}
-
-Vertriebsimpuls:
-${salesHint}
-
-Betreuungsimpuls:
-${opsHint}`;
-
-      renderPriorities(buildPriorityList(counts, revenues.total));
-    }
-
-    async function readPdf(file) {
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      let text = '';
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const content = await page.getTextContent();
-        const pageText = content.items.map(item => item.str).join('\n');
-        text += `\n--- Seite ${i} ---\n${pageText}\n`;
-      }
-      return text;
-    }
-
-    async function handlePdfUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      document.getElementById('pdfStatus').textContent = `Analysiere ${file.name} ...`;
-      try {
-        const text = await readPdf(file);
-        state.rawText = text;
-        document.getElementById('manualText').value = text;
-        document.getElementById('rawTextPreview').textContent = text.slice(0, 12000) || 'Kein Text erkannt.';
-        const customers = extractCustomers(text);
-        state.customers = customers;
-        renderCustomers(customers);
-        summarize(customers);
-        document.getElementById('pdfStatus').textContent = `${file.name} erfolgreich analysiert.`;
-      } catch (error) {
-        console.error(error);
-        document.getElementById('pdfStatus').textContent = 'PDF konnte nicht ausgewertet werden.';
-        document.getElementById('rawTextPreview').textContent = 'Fehler bei der PDF-Auswertung. Möglicherweise ist die Vorschau bildbasiert oder das Layout weicht stark ab.';
-      }
-    }
-
-    function analyzeManualText() {
-      const text = document.getElementById('manualText').value || '';
-      state.rawText = text;
-      document.getElementById('rawTextPreview').textContent = text || 'Kein Text vorhanden.';
-      const customers = extractCustomers(text);
-      state.customers = customers;
-      renderCustomers(customers);
-      summarize(customers);
-      document.getElementById('pdfStatus').textContent = 'Text erneut ausgewertet.';
-    }
-
-    function loadDemoData() {
-      const demo = `Rechnungsvorschau
-Max Mustermann
-684,50 €
-Erika Beispiel
-455,00 €
-Hans Testkunde
-398,00 €
-Anna Sommer
-189,50 €
-Peter Winter
-520,00 €
-Sabine Blau
-210,00 €
-Mia Kurz
-95,00 €`;
-      document.getElementById('manualText').value = demo;
-      analyzeManualText();
-    }
-
-    function copySummary() {
-      navigator.clipboard.writeText(document.getElementById('summaryBox').textContent)
-        .then(() => alert('Zusammenfassung wurde kopiert.'))
-        .catch(() => alert('Kopieren nicht möglich.'));
-    }
-
-    function resetAll() {
-      state.customers = [];
-      state.rawText = '';
-      document.getElementById('pdfUpload').value = '';
-      document.getElementById('manualText').value = '';
-      document.getElementById('rawTextPreview').textContent = 'Noch keine PDF geladen.';
-      document.getElementById('pdfStatus').textContent = 'Noch keine PDF hochgeladen.';
-      renderCustomers([]);
-      summarize([]);
-    }
-
-    function escapeHtml(value) {
-      return String(value)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
-
-    document.getElementById('todayDate').textContent = todayGerman();
-    document.getElementById('pdfUpload').addEventListener('change', handlePdfUpload);
-    summarize([]);
-  </script>
+function copyPrintText(){
+  const el=document.getElementById('printSheet');
+  navigator.clipboard.writeText(el.innerText).then(()=>setStatus('Ausdruck-Text kopiert.')).catch(()=>{});
+}
+</script>
 </body>
 </html>
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.js';
+
+const S={customers:[],asData:[],stundenData:[],rawText:'',hBooked:0,hDone:0};
+
+function fmt(v){return new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(v||0)}
+function pct(a,b){return b>0?((a/b)*100).toFixed(1)+'\u202f%':'0,0\u202f%'}
+function cls(a){return a>500?'A':a>=400?'B':a>=200?'C':'D'}
+function todayDE(){return new Intl.DateTimeFormat('de-DE',{weekday:'long',year:'numeric',month:'long',day:'numeric'}).format(new Date())}
+function setStatus(t){document.getElementById('statusBar').textContent=t}
+
+function parseEuro(r){
+  const c=String(r||'').replace(/€/g,'').replace(/\s/g,'').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',','.');
+  const n=Number(c);return Number.isFinite(n)?n:NaN;
+}
+
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    const ids=['uebersicht','kunden','asbremen','empfehlungen','mitarbeiter','rohtext','ausdruck'];
+    t.classList.toggle('active',ids[i]===id);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id==='tab-'+id));
+  if(id==='ausdruck')buildPrint();
+}
+
+async function readPdfText(file){
+  const buf=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+  let txt='';
+  for(let i=1;i<=pdf.numPages;i++){
+    const pg=await pdf.getPage(i);
+    const ct=await pg.getTextContent();
+    txt+='\n--- Seite '+i+' ---\n'+ct.items.map(x=>x.str).join('\n')+'\n';
+  }
+  return txt;
+}
+
+function extractCustomers(text){
+  const lines=text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  const aRx=new RegExp(document.getElementById('amountRx').value,'g');
+  const nRx=new RegExp(document.getElementById('nameRx').value);
+  const raw=[];
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i];
+    const ms=[...line.matchAll(aRx)];
+    if(!ms.length)continue;
+    for(const m of ms){
+      const amt=parseEuro(m[1]||m[0]);
+      if(!Number.isFinite(amt)||amt<=0)continue;
+      let name='';
+      const inLine=line.replace(m[0],'').replace(/[;|]/g,' ').trim();
+      if(nRx.test(inLine)&&inLine.length>3)name=inLine;
+      if(!name)for(let j=i-1;j>=Math.max(0,i-2);j--)if(nRx.test(lines[j])){name=lines[j];break}
+      if(!name){const fb=line.split(m[0])[0].trim();if(fb.length>2)name=fb}
+      if(!name)name='Unbekannt '+(raw.length+1);
+      raw.push({customer:name,amount:amt,segment:cls(amt),source:line});
+    }
+  }
+  const grp=new Map();
+  for(const x of raw){const k=x.customer.toLowerCase();if(!grp.has(k)||grp.get(k).amount<x.amount)grp.set(k,x)}
+  return[...grp.values()].sort((a,b)=>b.amount-a.amount);
+}
+
+async function loadHeimbasPdf(e){
+  const f=e.target.files[0];if(!f)return;
+  document.getElementById('heimbasFileName').textContent=f.name;
+  document.getElementById('zoneHeimbas').style.borderColor='#0f766e';
+  document.getElementById('zoneHeimbas').style.borderStyle='solid';
+  setStatus('Analysiere Heimbas-Rechnungsvorschau: '+f.name+' …');
+  try{
+    const txt=await readPdfText(f);
+    S.rawText=txt;
+    document.getElementById('rawTA').value=txt;
+    S.customers=extractCustomers(txt);
+    render();
+    setStatus('Heimbas-Rechnungsvorschau geladen: '+f.name+' · '+S.customers.length+' Kunden erkannt.');
+  }catch(err){setStatus('Fehler beim Lesen der PDF: '+err.message)}
+}
+
+async function loadHeimbasStundenPdf(e){
+  const f=e.target.files[0];if(!f)return;
+  document.getElementById('heimbasStundenFileName').textContent=f.name;
+  document.getElementById('zoneHeimbasStunden').style.borderColor='#0f766e';
+  document.getElementById('zoneHeimbasStunden').style.borderStyle='solid';
+  setStatus('Analysiere Heimbas Stunden/Mitarbeiter: '+f.name+' …');
+  try{
+    const txt=await readPdfText(f);
+    parseHeimbasStunden(txt);
+    setStatus('Heimbas Stunden/Mitarbeiter geladen: '+f.name);
+  }catch(err){setStatus('Fehler: '+err.message)}
+}
+
+async function loadAsPdf(e){
+  const f=e.target.files[0];if(!f)return;
+  document.getElementById('asPdfFileName').textContent=f.name;
+  document.getElementById('zoneAsPdf').style.borderColor='#185fa5';
+  document.getElementById('zoneAsPdf').style.borderStyle='solid';
+  setStatus('Analysiere AS-Bremen-PDF: '+f.name+' …');
+  try{
+    const txt=await readPdfText(f);
+    parseAsText(txt);
+    setStatus('AS-Bremen-PDF geladen: '+f.name);
+  }catch(err){setStatus('Fehler: '+err.message)}
+}
+
+function parseHeimbasStunden(txt){
+  const lines=txt.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  const stundenRx=/(\d+[.,]\d+)\s*(?:Std|h|Stunden)/i;
+  const nameRx=/^([A-ZÄÖÜ][A-Za-zÄÖÜäöüß\-]+(?:\s+[A-ZÄÖÜ][A-Za-zÄÖÜäöüß\-]+){1,3})$/;
+  const dateRx=/\d{2}\.\d{2}\.\d{4}/;
+  const ma=[];
+  let totalBooked=0,totalDone=0;
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i];
+    const sm=line.match(stundenRx);
+    if(!sm)continue;
+    const stunden=parseFloat(sm[1].replace(',','.'));
+    if(!isFinite(stunden))continue;
+    let name='Unbekannt';
+    for(let j=i-1;j>=Math.max(0,i-3);j--)if(nameRx.test(lines[j])){name=lines[j];break}
+    const date=(line.match(dateRx)||[''])[0];
+    const lower=line.toLowerCase();
+    if(lower.includes('gebuch')||lower.includes('geplant')||lower.includes('soll')){totalBooked+=stunden;ma.push({name,stunden,type:'gebucht',date})}
+    else if(lower.includes('erbracht')||lower.includes('ist')||lower.includes('tatsächl')){totalDone+=stunden;ma.push({name,stunden,type:'erbracht',date})}
+    else{totalBooked+=stunden;ma.push({name,stunden,type:'gebucht',date})}
+  }
+  S.stundenData=ma;
+  if(totalBooked>0){
+    document.getElementById('hBooked').value=totalBooked.toFixed(0);
+    document.getElementById('hDone').value=totalDone>0?totalDone.toFixed(0):totalBooked.toFixed(0);
+    calcAusl();
+  }
+  renderMitarbeiter();
+  setStatus('Stunden/Mitarbeiter erkannt: '+ma.length+' Einträge · '+totalBooked.toFixed(0)+' Stunden gebucht.');
+}
+
+function renderMitarbeiter(){
+  const el=document.getElementById('maBody');
+  if(!el)return;
+  const d=S.stundenData||[];
+  if(!d.length){el.innerHTML='<tr><td colspan="4" style="color:var(--muted)">Keine Mitarbeiterdaten geladen.</td></tr>';return}
+  el.innerHTML=d.map(x=>`<tr><td>${esc(x.name)}</td><td>${x.stunden.toFixed(1)} Std.</td><td><span class="badge ${x.type==='erbracht'?'b-ok':'b-B'}">${esc(x.type)}</span></td><td>${esc(x.date)||'–'}</td></tr>`).join('');
+}
+
+function parseAsText(txt){
+  const lines=txt.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  const aRx=/(-?\d{1,3}(?:\.\d{3})*,\d{2})\s*€?/g;
+  const nRx=/^([A-ZÄÖÜ][A-Za-zÄÖÜäöüß\-]+(?:\s+[A-ZÄÖÜ][A-Za-zÄÖÜäöüß\-]+){0,3})$/;
+  const dateRx=/\d{2}\.\d{2}\.\d{4}/;
+  const data=[];
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i];
+    const ms=[...line.matchAll(aRx)];
+    if(!ms.length)continue;
+    for(const m of ms){
+      const amt=parseEuro(m[1]);
+      if(!Number.isFinite(amt)||amt<=0)continue;
+      let name='Unbekannt';
+      for(let j=i-1;j>=Math.max(0,i-2);j--)if(nRx.test(lines[j])){name=lines[j];break}
+      const due=(line.match(dateRx)||['–'])[0];
+      data.push({name,amt,status:'offen',due});
+    }
+  }
+  S.asData=data;renderAs();renderKpis();buildActions();
+}
+
+function render(){
+  renderKpis();renderSegBar();renderTable();buildActions();buildSummary();buildPrint();
+}
+
+function renderKpis(){
+  const c=S.customers;
+  const tot=c.length;
+  const rev=c.reduce((s,x)=>s+x.amount,0);
+  const avg=tot?rev/tot:0;
+  const cA=c.filter(x=>x.segment==='A').length;
+  const cD=c.filter(x=>x.segment==='D').length;
+  setText('kTot',tot||'–');
+  setText('kRev',tot?fmt(rev):'–');
+  setText('kAvg',tot?fmt(avg):'–');
+  setText('kA',tot?cA:'–');
+  setText('kD',tot?cD:'–');
+  const opTotal=S.asData.filter(x=>!x.status.toLowerCase().includes('bezahlt')).reduce((s,x)=>s+x.amt,0);
+  setText('kOp',S.asData.length?fmt(opTotal):'–');
+}
+
+function renderSegBar(){
+  const c=S.customers;
+  const tot=c.length;if(!tot)return;
+  const counts={A:0,B:0,C:0,D:0};
+  const revs={A:0,B:0,C:0,D:0};
+  const rev=c.reduce((s,x)=>s+x.amount,0);
+  c.forEach(x=>{counts[x.segment]++;revs[x.segment]+=x.amount});
+  ['A','B','C','D'].forEach(s=>{
+    document.getElementById('sb-'+s).style.width=pct(counts[s],tot);
+    document.getElementById('lg'+s).textContent=counts[s];
+  });
+  document.getElementById('revMix').textContent=['A','B','C','D'].map(s=>`${s}: ${pct(revs[s],rev)}`).join('  ·  ');
+}
+
+function renderTable(){
+  const seg=document.getElementById('segFilter').value;
+  const q=(document.getElementById('searchFilter').value||'').toLowerCase();
+  const rows=S.customers.filter(x=>(!seg||x.segment===seg)&&(!q||x.customer.toLowerCase().includes(q)));
+  const body=document.getElementById('custBody');
+  if(!rows.length){body.innerHTML='<tr><td colspan="4" style="color:var(--muted)">Keine Treffer.</td></tr>';return}
+  body.innerHTML=rows.map(x=>`<tr><td>${esc(x.customer)}</td><td>${fmt(x.amount)}</td><td><span class="badge b-${x.segment}">${x.segment}</span></td><td style="font-family:DM Mono,monospace;font-size:11px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.source)}</td></tr>`).join('');
+}
+
+function renderAs(){
+  const d=S.asData;
+  const opAmt=d.filter(x=>!x.status.toLowerCase().includes('bezahlt')).reduce((s,x)=>s+x.amt,0);
+  const okAmt=d.filter(x=>x.status.toLowerCase().includes('bezahlt')).reduce((s,x)=>s+x.amt,0);
+  setText('asOpTotal',d.length?fmt(opAmt):'–');
+  setText('asOkTotal',d.length?fmt(okAmt):'–');
+  setText('asTot',d.length||'–');
+  document.getElementById('asInfo').textContent=d.length?`${d.length} Positionen geladen · Offen: ${fmt(opAmt)} · Bezahlt: ${fmt(okAmt)}`:'Noch kein Export geladen.';
+  const body=document.getElementById('asBody');
+  if(!d.length){body.innerHTML='<tr><td colspan="4" style="color:var(--muted)">Keine Daten.</td></tr>';return}
+  body.innerHTML=d.map(x=>{
+    const ok=x.status.toLowerCase().includes('bezahlt');
+    return`<tr><td>${esc(x.name)}</td><td>${fmt(x.amt)}</td><td><span class="badge ${ok?'b-ok':'b-open'}">${esc(x.status)}</span></td><td>${esc(x.due)}</td></tr>`;
+  }).join('');
+}
+
+function calcAusl(){
+  const b=parseFloat(document.getElementById('hBooked').value)||0;
+  const d=parseFloat(document.getElementById('hDone').value)||0;
+  S.hBooked=b;S.hDone=d;
+  if(!b){setText('auslPct','–');document.getElementById('auslNote').textContent='Bitte Stunden eingeben.';document.getElementById('auslFill').style.width='0%';return}
+  const r=(d/b)*100;
+  const pctStr=r.toFixed(1)+'\u202f%';
+  setText('auslPct',pctStr);
+  const diff=d-b;
+  document.getElementById('auslNote').textContent=`${d} von ${b} Stunden erbracht · Differenz: ${diff>=0?'+':''}${diff} Std.`;
+  const fill=document.getElementById('auslFill');
+  fill.style.width=Math.min(r,100)+'%';
+  fill.className='ausl-fill'+(r<85?' danger':r<95?' warn':'');
+  buildActions();buildSummary();
+}
+
+function buildActions(){
+  const c=S.customers;
+  const tot=c.length;
+  const items=[];
+  if(!tot&&!S.asData.length){
+    document.getElementById('actionsGrid').innerHTML=`<div class="action-card ac-teal"><div class="ac-head"><div class="ac-icon icon-teal"><svg fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01"/><circle cx="12" cy="12" r="10"/></svg></div><div class="ac-title t-teal">Daten laden</div></div><div class="ac-body">Bitte Heimbas-PDF und/oder AS-Bremen-Export hochladen.</div></div>`;
+    return;
+  }
+  const counts={A:0,B:0,C:0,D:0};
+  const rev=c.reduce((s,x)=>s+x.amount,0);
+  c.forEach(x=>counts[x.segment]++);
+  const cdShare=tot?(counts.C+counts.D)/tot:0;
+  const aShare=tot?counts.A/tot:0;
+  const opTotal=S.asData.filter(x=>!x.status.toLowerCase().includes('bezahlt')).reduce((s,x)=>s+x.amt,0);
+
+  if(counts.A<=2&&tot>=6)items.push(['red','Sofortmaßnahme: A-Kunden aufbauen','Nur '+counts.A+' A-Kunde(n) erkannt. Gespräche zur Leistungsverdichtung, Pflegegraderhöhung und Kombinationsleistungen bei geeigneten Kunden sofort einplanen.']);
+  if(cdShare>0.5)items.push(['amber','C/D-Kunden entwickeln',''+Math.round(cdShare*100)+'\u202f% der Kunden sind C oder D. Systematisches Upgrading: Bedarfsanalyse, Stundenaufbau und Zusatzleistungen gezielt ansprechen.']);
+  if(aShare>=0.3)items.push(['green','A-Kundenbasis sichern','Starker Premium-Anteil ('+counts.A+' A-Kunden). Qualitätssicherung, enge Betreuung und Empfehlungsmanagement als Priorität halten.']);
+  if(opTotal>500)items.push(['amber','Offene Posten klären (AS Bremen)','Ausstehend: '+fmt(opTotal)+'. Mahnlauf prüfen, Zahlungsklärung mit Kassen und Angehörigen einleiten.']);
+  if(S.hBooked>0){const r=(S.hDone/S.hBooked)*100;if(r<90)items.push(['red','Auslastung kritisch','Auslastung bei '+r.toFixed(1)+'\u202f%. Ursachen analysieren: Ausfälle, Absagen, Touren-Engpässe. Sofortmaßnahmen mit Einsatzplanung abstimmen.']);else if(r<96)items.push(['amber','Auslastung optimierbar',''+r.toFixed(1)+'\u202f% Auslastung. Verbesserungspotenzial durch bessere Tourenplanung oder Puffertermine möglich.'])}
+  if(counts.B>=2)items.push(['blue','B-Kunden upgraden',''+counts.B+' B-Kunden nah an der A-Schwelle. Gezielte Angehörigengespräche und Leistungspakete können diese Kunden in Segment A heben.']);
+  if(!items.length)items.push(['teal','Struktur im Zielbereich','Kundenmix und Umsatzstruktur grundsätzlich in Ordnung. Fokus: Stabilisierung, Empfehlungen und kontinuierliches Upgrading.']);
+
+  const icons={
+    red:`<svg fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>`,
+    amber:`<svg fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>`,
+    green:`<svg fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>`,
+    blue:`<svg fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`,
+    teal:`<svg fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>`
+  };
+  document.getElementById('actionsGrid').innerHTML=items.map(([color,title,body])=>`
+    <div class="action-card ac-${color}">
+      <div class="ac-head">
+        <div class="ac-icon icon-${color}">${icons[color]}</div>
+        <div class="ac-title t-${color}">${esc(title)}</div>
+      </div>
+      <div class="ac-body">${esc(body)}</div>
+    </div>`).join('');
+
+  renderPriorities(counts,rev);
+}
+
+function renderPriorities(counts,rev){
+  const tot=counts.A+counts.B+counts.C+counts.D;
+  const items=[];
+  if((counts.C+counts.D)/Math.max(tot,1)>0.5)items.push(['amber','Hoher C/D-Anteil – Upgrading prüfen']);
+  if(counts.A<=2&&tot>=6)items.push(['red','Zu wenig A-Kunden – Vertrieb prüfen']);
+  if(counts.A/Math.max(tot,1)>=0.3)items.push(['green','Premium-Basis stabil halten']);
+  if(!items.length)items.push(['teal','Struktur im grünen Bereich']);
+  document.getElementById('priorityList').innerHTML=items.map(([c,t])=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:var(--${c}-soft);border:1px solid;border-color:${c==='amber'?'#fcd34d':c==='red'?'#fca5a5':c==='green'?'#86efac':'#a7d8d5'};margin-bottom:6px"><span style="width:7px;height:7px;border-radius:50%;background:var(--${c});flex-shrink:0"></span><span style="font-size:12px;font-weight:500;color:var(--${c})">${t}</span></div>`).join('');
+}
+
+function buildSummary(){
+  const c=S.customers;const tot=c.length;
+  if(!tot){document.getElementById('summaryBox').textContent='Noch keine Auswertung.';return}
+  const rev=c.reduce((s,x)=>s+x.amount,0);
+  const avg=tot?rev/tot:0;
+  const counts={A:0,B:0,C:0,D:0};const revs={A:0,B:0,C:0,D:0};
+  c.forEach(x=>{counts[x.segment]++;revs[x.segment]+=x.amount});
+  const opTotal=S.asData.filter(x=>!x.status.toLowerCase().includes('bezahlt')).reduce((s,x)=>s+x.amt,0);
+  const loc=document.getElementById('locName').value||'Standort';
+  const lead=document.getElementById('leadName').value||'nicht eingetragen';
+  const ausl=S.hBooked>0?`\nAuslastung:        ${((S.hDone/S.hBooked)*100).toFixed(1)} % (${S.hDone} / ${S.hBooked} Std.)`:'';
+  const opLine=S.asData.length?`\nOffene Posten:     ${fmt(opTotal)}`:'';
+  document.getElementById('summaryBox').textContent=
+`Management-Update ${loc}
+${todayDE()}
+Standortleiter: ${lead}
+${'─'.repeat(40)}
+Kunden gesamt:     ${tot}
+Gesamtumsatz:      ${fmt(rev)}
+Ø Erlös/Kunde:     ${fmt(avg)}${ausl}${opLine}
+${'─'.repeat(40)}
+Segmente:
+  A (>500 €):   ${counts.A}  (${pct(counts.A,tot)} | ${pct(revs.A,rev)} Umsatz)
+  B (400–500):  ${counts.B}  (${pct(counts.B,tot)} | ${pct(revs.B,rev)} Umsatz)
+  C (200–400):  ${counts.C}  (${pct(counts.C,tot)} | ${pct(revs.C,rev)} Umsatz)
+  D (<200 €):   ${counts.D}  (${pct(counts.D,tot)} | ${pct(revs.D,rev)} Umsatz)`;
+}
+
+function exportCsv(type){
+  let rows,filename;
+  if(type==='kunden'){
+    rows=[['Kunde','Betrag','Segment'],...S.customers.map(x=>[x.customer,x.amount.toFixed(2).replace('.',','),x.segment])];
+    filename='kunden_'+new Date().toISOString().slice(0,10)+'.csv';
+  }else{
+    rows=[['Kunde','Betrag','Status','Fällig'],...S.asData.map(x=>[x.name,x.amt.toFixed(2).replace('.',','),x.status,x.due])];
+    filename='asbremen_'+new Date().toISOString().slice(0,10)+'.csv';
+  }
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\r\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();
+}
+
+function copyZone(id){
+  const t=document.getElementById(id).textContent;
+  navigator.clipboard.writeText(t).then(()=>setStatus('In Zwischenablage kopiert.')).catch(()=>{});
+}
+
+function copySummary(){
+  const t=document.getElementById('summaryBox').textContent;
+  navigator.clipboard.writeText(t).then(()=>setStatus('Zusammenfassung kopiert.')).catch(()=>{});
+}
+
+function reanalyze(){
+  const txt=document.getElementById('rawTA').value||'';
+  S.rawText=txt;S.customers=extractCustomers(txt);
+  render();setStatus('Erneut ausgewertet: '+S.customers.length+' Kunden erkannt.');
+}
+
+function loadDemo(){
+  const heimbasText=`Rechnungsvorschau\nMax Mustermann\n684,50 €\nErika Beispiel\n455,00 €\nHans Testkunde\n398,00 €\nAnna Sommer\n189,50 €\nPeter Winter\n520,00 €\nSabine Blau\n210,00 €\nMia Kurz\n95,00 €\nKlaus Bergmann\n540,00 €`;
+  document.getElementById('rawTA').value=heimbasText;
+  S.rawText=heimbasText;
+  S.customers=extractCustomers(heimbasText);
+  S.asData=[
+    {name:'Max Mustermann',amt:684.50,status:'bezahlt',due:'01.04.2026'},
+    {name:'Erika Beispiel',amt:455.00,status:'offen',due:'15.04.2026'},
+    {name:'Peter Winter',amt:520.00,status:'offen',due:'20.04.2026'},
+    {name:'Anna Sommer',amt:189.50,status:'offen',due:'10.04.2026'},
+    {name:'Klaus Bergmann',amt:540.00,status:'teilweise bezahlt',due:'05.04.2026'},
+  ];
+  S.stundenData=[
+    {name:'Maria Huber',stunden:42,type:'gebucht',date:'14.04.2026'},
+    {name:'Maria Huber',stunden:39,type:'erbracht',date:'14.04.2026'},
+    {name:'Thomas Maier',stunden:38,type:'gebucht',date:'14.04.2026'},
+    {name:'Thomas Maier',stunden:38,type:'erbracht',date:'14.04.2026'},
+    {name:'Sandra Koch',stunden:35,type:'gebucht',date:'14.04.2026'},
+    {name:'Sandra Koch',stunden:30,type:'erbracht',date:'14.04.2026'},
+  ];
+  document.getElementById('hBooked').value='340';
+  document.getElementById('hDone').value='308';
+  document.getElementById('heimbasFileName').textContent='demo_rechnungsvorschau.pdf';
+  document.getElementById('zoneHeimbas').style.borderColor='#0f766e';
+  document.getElementById('zoneHeimbas').style.borderStyle='solid';
+  document.getElementById('heimbasStundenFileName').textContent='demo_stunden_mitarbeiter.pdf';
+  document.getElementById('zoneHeimbasStunden').style.borderColor='#0f766e';
+  document.getElementById('zoneHeimbasStunden').style.borderStyle='solid';
+  document.getElementById('asPdfFileName').textContent='demo_asbremen.pdf';
+  document.getElementById('zoneAsPdf').style.borderColor='#185fa5';
+  document.getElementById('zoneAsPdf').style.borderStyle='solid';
+  render();renderAs();calcAusl();renderMitarbeiter();
+  setStatus('Demo-Daten geladen.');
+}
+
+function setText(id,val){const el=document.getElementById(id);if(el)el.textContent=val}
+function esc(v){return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+document.getElementById('todayStr').textContent='KM Fürsorge GmbH · '+todayDE();
+buildSummary();
+</script>
