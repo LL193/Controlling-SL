@@ -573,9 +573,7 @@ function copyPrintText(){
   const el=document.getElementById('printSheet');
   navigator.clipboard.writeText(el.innerText).then(()=>setStatus('Ausdruck-Text kopiert.')).catch(()=>{});
 }
-</script>
-</body>
-</html>
+
 pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.js';
 
 const S={customers:[],asData:[],stundenData:[],rawText:'',hBooked:0,hDone:0};
@@ -967,3 +965,5 @@ function esc(v){return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 document.getElementById('todayStr').textContent='KM Fürsorge GmbH · '+todayDE();
 buildSummary();
 </script>
+</body>
+</html>
