@@ -2,10 +2,13 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Standortleiter Dashboard – KM Fürsorge GmbH</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.js"></script>
+<title>Standortleiter Dashboard v13 – KM Fürsorge GmbH</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
 <style>
 :root {
   --bg: #f0ede8;
@@ -24,12 +27,15 @@
   --red-soft: #fee2e2;
   --green: #166534;
   --green-soft: #dcfce7;
+  --purple: #6b21a8;
+  --purple-soft: #f3e8ff;
   --accent: #0f766e;
   --mono: 'DM Mono', monospace;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
 input[type=file] { display: none; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
 .page { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
 
@@ -46,6 +52,7 @@ input[type=file] { display: none; }
 .btn-teal:hover { background: #0d6660; }
 .btn-blue { background: var(--blue); color: #fff; border-color: var(--blue); }
 .btn-blue:hover { background: #0c4f8a; }
+.btn-sm { font-size: 12px; padding: 5px 10px; border-radius: 8px; }
 .file-btn { font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--text); transition: background .15s; }
 .file-btn:hover { background: var(--bg); }
 
@@ -75,10 +82,13 @@ input[type=file] { display: none; }
 .kpi.kpi-red .k-val { color: var(--red); }
 .kpi.kpi-amber .k-val { color: var(--amber); }
 .kpi.kpi-blue .k-val { color: var(--blue); }
+.kpi.kpi-purple .k-val { color: var(--purple); }
 
 /* Two columns */
 .col2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 @media(max-width:640px){ .col2 { grid-template-columns: 1fr; } }
+.col3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+@media(max-width:768px){ .col3 { grid-template-columns: 1fr; } }
 
 /* Cards */
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
@@ -98,6 +108,7 @@ table { width: 100%; border-collapse: collapse; font-size: 13px; }
 th { padding: 8px 12px; text-align: left; background: var(--surface); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); border-bottom: 1px solid var(--line); }
 td { padding: 9px 12px; border-bottom: 1px solid var(--line); }
 tr:last-child td { border-bottom: none; }
+th.num, td.num { text-align: right; font-family: var(--mono); font-size: 12px; }
 
 /* Badges */
 .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
@@ -108,6 +119,10 @@ tr:last-child td { border-bottom: none; }
 .b-ok { background: var(--green-soft); color: var(--green); }
 .b-open { background: var(--red-soft); color: var(--red); }
 .b-partial { background: var(--amber-soft); color: var(--amber); }
+.b-info { background: var(--blue-soft); color: var(--blue); }
+.b-done { background: var(--green-soft); color: var(--green); }
+.b-pending { background: var(--amber-soft); color: var(--amber); }
+.b-delegated { background: var(--purple-soft); color: var(--purple); }
 
 /* Action cards */
 .actions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
@@ -143,6 +158,33 @@ tr:last-child td { border-bottom: none; }
 /* Summary */
 .summary-pre { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; font-size: 12px; font-family: var(--mono); white-space: pre-wrap; line-height: 1.6; color: var(--text); }
 
+/* Globales Drop-Overlay */
+#globalDropOverlay { position: fixed; inset: 0; z-index: 9000; display: none; align-items: center; justify-content: center; background: rgba(15,118,110,.12); backdrop-filter: blur(3px); pointer-events: none; }
+#globalDropOverlay.active { display: flex; }
+.gdo-inner { background: #fff; border: 2.5px dashed var(--teal); border-radius: 20px; padding: 44px 56px; text-align: center; color: var(--teal); box-shadow: 0 20px 60px rgba(0,0,0,.15); }
+.gdo-title { font-size: 20px; font-weight: 600; margin-top: 12px; }
+.gdo-sub { font-size: 13px; color: var(--muted); margin-top: 8px; line-height: 1.6; }
+
+/* Typ-Auswahl-Dialog */
+.tc-backdrop { position: fixed; inset: 0; z-index: 9100; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.35); padding: 20px; }
+.tc-backdrop.active { display: flex; }
+.tc-box { background: #fff; border-radius: 18px; padding: 26px 28px; max-width: 480px; width: 100%; box-shadow: 0 24px 70px rgba(0,0,0,.25); }
+.tc-title { font-size: 16px; font-weight: 600; }
+.tc-file { font-family: var(--mono); font-size: 12px; color: var(--teal); background: var(--teal-soft); border-radius: 8px; padding: 6px 10px; margin: 10px 0; word-break: break-all; }
+.tc-sub { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+.tc-btns { display: flex; flex-direction: column; gap: 8px; }
+.tc-btn { font: inherit; font-size: 13px; font-weight: 500; text-align: left; cursor: pointer; padding: 11px 14px; border-radius: 10px; border: 1.5px solid var(--c,#ccc); background: var(--cs,#f5f5f5); color: var(--c,#333); transition: transform .1s, box-shadow .1s; }
+.tc-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+.tc-skip { --c: #7a7570; --cs: #f0ede8; text-align: center; }
+
+/* Import-Log */
+.il-row { display: flex; align-items: center; gap: 10px; font-size: 12px; padding: 5px 0; }
+.il-name { font-family: var(--mono); color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.il-typ { flex-shrink: 0; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 500; background: var(--teal-soft); color: var(--teal); }
+.il-typ.il-err { background: var(--red-soft); color: var(--red); }
+.il-typ.il-skip { background: var(--bg); color: var(--muted); }
+.il-msg { flex-shrink: 0; color: var(--muted); font-size: 11px; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 /* Upload zones */
 .upload-zone { border: 1.5px dashed var(--line); border-radius: 12px; padding: 16px; text-align: center; cursor: pointer; background: var(--surface); transition: border-color .15s; }
 .upload-zone:hover { border-color: var(--teal); }
@@ -157,13 +199,78 @@ tr:last-child td { border-bottom: none; }
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
 
+/* Role switch */
+.role-switch { display: inline-flex; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 2px; }
+.role-btn { font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; padding: 7px 13px; border-radius: 7px; border: none; background: transparent; color: var(--muted); transition: background .15s, color .15s; }
+.role-btn.active { background: var(--teal); color: #fff; }
+.role-btn:not(.active):hover { background: var(--bg); }
+
+/* Kompakt-Cockpit */
+.cockpit { background: linear-gradient(135deg, #ffffff, #fbfaf8); border: 1.5px solid var(--line); border-radius: 18px; padding: 22px 24px; margin-bottom: 24px; box-shadow: 0 2px 12px rgba(26,26,26,.04); }
+.cockpit-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+.cockpit-title { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+.cockpit-date { font-size: 12px; color: var(--muted); }
+.cockpit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 12px; }
+.cockpit-empty { grid-column: 1/-1; font-size: 13px; color: var(--muted); padding: 8px 0; }
+.cockpit-cell { background: var(--card); border: 1px solid var(--line); border-radius: 13px; padding: 14px 15px; position: relative; overflow: hidden; }
+.cockpit-cell::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; }
+.cockpit-cell.cp-green::before { background: var(--green); }
+.cockpit-cell.cp-amber::before { background: #b45309; }
+.cockpit-cell.cp-red::before { background: var(--red); }
+.cockpit-cell.cp-neutral::before { background: var(--blue); }
+.cockpit-cell .cc-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 7px; }
+.cockpit-cell .cc-val { font-size: 23px; font-weight: 700; letter-spacing: -0.5px; line-height: 1; }
+.cockpit-cell .cc-sub { font-size: 11px; color: var(--muted); margin-top: 5px; }
+.cockpit-cell.cp-green .cc-val { color: var(--green); }
+.cockpit-cell.cp-amber .cc-val { color: #b45309; }
+.cockpit-cell.cp-red .cc-val { color: var(--red); }
+.cockpit-cell.cp-neutral .cc-val { color: var(--text); }
+.cockpit-flags { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+.cockpit-flag { display: flex; align-items: flex-start; gap: 10px; padding: 10px 13px; border-radius: 10px; font-size: 13px; line-height: 1.4; }
+.cockpit-flag .cf-icon { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; }
+.cockpit-flag.flag-red { background: var(--red-soft); color: var(--red); }
+.cockpit-flag.flag-amber { background: var(--amber-soft); color: var(--amber); }
+.cockpit-flag.flag-green { background: var(--green-soft); color: var(--green); }
+.cockpit-flag strong { font-weight: 700; }
+
 .footer { text-align: center; font-size: 11px; color: var(--muted); margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line); }
 
 /* Filters */
 .filter-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
 .filter-row select, .filter-row input[type=text] { font: inherit; font-size: 12px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--text); }
 .filter-row input[type=text] { flex: 1; min-width: 120px; }
+
+/* Inline form fields */
+.form-grid { display: grid; gap: 10px; }
+.form-grid label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 3px; font-weight: 500; }
+.form-grid input, .form-grid select, .form-grid textarea {
+  width: 100%; font: inherit; font-size: 13px; padding: 7px 10px;
+  border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--text);
+}
+.form-grid textarea { min-height: 60px; resize: vertical; font-size: 12px; }
+
+/* Finance bar chart */
+.fin-bar { display: flex; align-items: flex-end; gap: 6px; height: 120px; padding-top: 10px; }
+.fin-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.fin-bar-fill { width: 100%; border-radius: 6px 6px 0 0; transition: height .4s ease; min-height: 2px; }
+.fin-bar-label { font-size: 10px; color: var(--muted); text-align: center; }
+.fin-bar-val { font-size: 11px; font-weight: 600; font-family: var(--mono); }
+
+/* Comm log entry */
+.comm-entry { padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; background: var(--surface); }
+.comm-entry:hover { background: #f5f3ef; }
+.comm-meta { font-size: 11px; color: var(--muted); margin-bottom: 4px; display: flex; gap: 10px; align-items: center; }
+.comm-text { font-size: 13px; line-height: 1.5; }
+
+/* Entgelt table highlight */
+.entgelt-current { background: var(--teal-soft) !important; }
+
+/* Mini stat */
+.mini-stat { display: flex; align-items: baseline; gap: 6px; }
+.mini-stat .ms-val { font-size: 20px; font-weight: 600; }
+.mini-stat .ms-unit { font-size: 12px; color: var(--muted); }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 <div class="page">
@@ -172,12 +279,17 @@ tr:last-child td { border-bottom: none; }
 
 <div class="header">
   <div class="header-left">
-    <h1>Standortleiter Dashboard</h1>
+    <h1 id="dashTitle">Management Dashboard</h1>
     <p id="todayStr">KM Fürsorge GmbH · Landsberg am Lech</p>
   </div>
   <div class="header-actions">
-    <button class="btn" onclick="loadDemo()">Demo laden</button>
-    <button class="btn btn-teal" onclick="copySummary()">Zusammenfassung kopieren</button>
+    <div class="role-switch" id="roleSwitch">
+      <button class="role-btn active" data-role="leiter" onclick="setRole('leiter')">Standortleiter</button>
+      <button class="role-btn" data-role="gf" onclick="setRole('gf')">Geschäftsführer</button>
+    </div>
+    <button class="btn" onclick="saveLocalSnapshot()">Analyse speichern</button>
+    <button class="btn btn-blue" onclick="exportCFOReportPDF()">CFO PDF speichern</button>
+    <button class="btn btn-teal" onclick="closeMonthArchive()">Monat abschließen</button>
   </div>
 </div>
 
@@ -187,63 +299,126 @@ tr:last-child td { border-bottom: none; }
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
 
     <label for="uHeimbas" id="zoneHeimbas" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:2px dashed #a7d8d5;border-radius:12px;padding:18px 12px;cursor:pointer;background:var(--teal-soft);transition:border-color .15s;text-align:center">
-      <input id="uHeimbas" type="file" accept="application/pdf" onchange="loadHeimbasPdf(event)" />
+      <input id="uHeimbas" type="file" accept=".pdf,.xlsx,.xls,.csv,application/pdf" onchange="loadHeimbasPdf(event)" />
       <svg width="28" height="28" fill="none" stroke="#0f766e" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
       <div>
         <div style="font-size:13px;font-weight:600;color:#0f766e">Heimbas – Rechnungsvorschau</div>
-        <div style="font-size:11px;color:#0f766e;opacity:.8;margin-top:2px">Kunden &amp; Umsätze · PDF</div>
+        <div style="font-size:11px;color:#0f766e;opacity:.8;margin-top:2px">Kunden &amp; Umsätze · PDF / Excel</div>
       </div>
       <div id="heimbasFileName" style="font-size:11px;color:#0f766e;font-weight:500;min-height:14px"></div>
     </label>
 
     <label for="uHeimbasStunden" id="zoneHeimbasStunden" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:2px dashed #a7d8d5;border-radius:12px;padding:18px 12px;cursor:pointer;background:var(--teal-soft);transition:border-color .15s;text-align:center">
-      <input id="uHeimbasStunden" type="file" accept="application/pdf" onchange="loadHeimbasStundenPdf(event)" />
+      <input id="uHeimbasStunden" type="file" accept=".pdf,.xlsx,.xls,.csv,application/pdf" onchange="loadHeimbasStundenPdf(event)" />
       <svg width="28" height="28" fill="none" stroke="#0f766e" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       <div>
         <div style="font-size:13px;font-weight:600;color:#0f766e">Heimbas – Stunden / Mitarbeiter</div>
-        <div style="font-size:11px;color:#0f766e;opacity:.8;margin-top:2px">Terminierte Stunden &amp; Personal · PDF</div>
+        <div style="font-size:11px;color:#0f766e;opacity:.8;margin-top:2px">Terminierte Stunden &amp; Personal · PDF / Excel</div>
         <div style="font-size:10px;color:#0f766e;opacity:.6;margin-top:3px;font-style:italic">ohne Fahrzeiten</div>
       </div>
       <div id="heimbasStundenFileName" style="font-size:11px;color:#0f766e;font-weight:500;min-height:14px"></div>
     </label>
 
     <label for="uAsPdf" id="zoneAsPdf" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:2px dashed #a8c9eb;border-radius:12px;padding:18px 12px;cursor:pointer;background:var(--blue-soft);transition:border-color .15s;text-align:center">
-      <input id="uAsPdf" type="file" accept="application/pdf" onchange="loadAsPdf(event)" />
+      <input id="uAsPdf" type="file" accept=".pdf,.xlsx,.xls,.csv,application/pdf" onchange="loadAsPdf(event)" />
       <svg width="28" height="28" fill="none" stroke="#185fa5" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
       <div>
         <div style="font-size:13px;font-weight:600;color:#185fa5">AS Bremen – Abrechnung</div>
-        <div style="font-size:11px;color:#185fa5;opacity:.8;margin-top:2px">Offene Posten &amp; Abrechnung · PDF</div>
+        <div style="font-size:11px;color:#185fa5;opacity:.8;margin-top:2px">Offene Posten &amp; Abrechnung · PDF / Excel / CSV</div>
       </div>
       <div id="asPdfFileName" style="font-size:11px;color:#185fa5;font-weight:500;min-height:14px"></div>
+    </label>
+
+    <label for="uBwaPdf" id="zoneBwaPdf" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:2px dashed #fcd34d;border-radius:12px;padding:18px 12px;cursor:pointer;background:var(--amber-soft);transition:border-color .15s;text-align:center">
+      <input id="uBwaPdf" type="file" accept=".pdf,.xlsx,.xls,.csv,application/pdf" onchange="loadBwaPdf(event)" />
+      <svg width="28" height="28" fill="none" stroke="#92400e" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-7"/><circle cx="7" cy="15" r="1"/><circle cx="11" cy="11" r="1"/><circle cx="14" cy="14" r="1"/><circle cx="19" cy="7" r="1"/></svg>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#92400e">BWA – Monatsauswertung</div>
+        <div style="font-size:11px;color:#92400e;opacity:.8;margin-top:2px">BWA per Drag &amp; Drop · PDF / Excel</div>
+        <div style="font-size:10px;color:#92400e;opacity:.7;margin-top:3px;font-style:italic">automatische CFO Bewertung</div>
+      </div>
+      <div id="bwaPdfFileName" style="font-size:11px;color:#92400e;font-weight:500;min-height:14px"></div>
+    </label>
+
+    <label for="uEdtime" id="zoneEdtime" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:2px dashed #c4b5fd;border-radius:12px;padding:18px 12px;cursor:pointer;background:var(--purple-soft);transition:border-color .15s;text-align:center">
+      <input id="uEdtime" type="file" accept=".pdf,.csv,.txt,.xlsx,.xls" multiple onchange="loadEdtimeFiles(event)" />
+      <svg width="28" height="28" fill="none" stroke="#6b21a8" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/><path d="M4 18h16"/></svg>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#6b21a8">Edtime – Zeiten &amp; Ausfälle</div>
+        <div style="font-size:11px;color:#6b21a8;opacity:.8;margin-top:2px">Fahrtzeit, Fahrtkosten, Krankheit</div>
+        <div style="font-size:10px;color:#6b21a8;opacity:.7;margin-top:3px;font-style:italic">mehrere Dateien möglich</div>
+      </div>
+      <div id="edtimeFileName" style="font-size:11px;color:#6b21a8;font-weight:500;min-height:14px"></div>
     </label>
 
   </div>
   <div style="margin-top:12px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px">
     <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
-    Alle Daten bleiben lokal in Ihrem Browser – kein Server-Upload.
+    Alle Daten bleiben lokal in Ihrem Browser – kein Server-Upload. <strong style="color:var(--teal)">Tipp: Dateien einfach irgendwo auf die Seite ziehen – der Typ wird automatisch erkannt (PDF, Excel, CSV, auch mehrere gleichzeitig).</strong>
+  </div>
+  <div id="importLog" style="display:none;margin-top:12px;border-top:1px solid var(--line);padding-top:10px"></div>
+</div>
+
+<!-- Globales Drop-Overlay -->
+<div id="globalDropOverlay">
+  <div class="gdo-inner">
+    <svg width="52" height="52" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    <div class="gdo-title">Dateien hier ablegen</div>
+    <div class="gdo-sub">Heimbas · AS Bremen · BWA · Edtime — Typ wird automatisch erkannt<br>PDF, Excel (.xlsx/.xls) und CSV, auch mehrere gleichzeitig</div>
   </div>
 </div>
 
-<div class="status-bar" id="statusBar">Bereit. Bitte oben eine Datei hochladen oder Demo laden.</div>
+<!-- Typ-Auswahl-Dialog für unklare Dateien -->
+<div id="typeChooser" class="tc-backdrop">
+  <div class="tc-box">
+    <div class="tc-title">Dateityp nicht eindeutig erkannt</div>
+    <div class="tc-file" id="tcFileName"></div>
+    <div class="tc-sub">Bitte zuordnen – die Datei wird dann sofort ausgewertet:</div>
+    <div class="tc-btns">
+      <button class="tc-btn" style="--c:#0f766e;--cs:#e6f4f3" onclick="tcPick('heimbas')">Heimbas – Rechnungsvorschau (Kunden &amp; Umsätze)</button>
+      <button class="tc-btn" style="--c:#0f766e;--cs:#e6f4f3" onclick="tcPick('heimbasStunden')">Heimbas – Stunden / Mitarbeiter</button>
+      <button class="tc-btn" style="--c:#185fa5;--cs:#e8f1fa" onclick="tcPick('as')">AS Bremen – Abrechnung / Offene Posten</button>
+      <button class="tc-btn" style="--c:#92400e;--cs:#fef3c7" onclick="tcPick('bwa')">BWA – Monatsauswertung</button>
+      <button class="tc-btn" style="--c:#6b21a8;--cs:#f3e8ff" onclick="tcPick('edtime')">Edtime – Zeiten &amp; Ausfälle</button>
+      <button class="tc-btn tc-skip" onclick="tcPick(null)">Datei überspringen</button>
+    </div>
+  </div>
+</div>
+
+<div class="status-bar" id="statusBar">Bereit. Bitte oben eine Datei hochladen.</div>
 
 <div class="sys-row">
   <span class="sys-badge sys-heimbas"><span class="dot"></span>Heimbas</span>
   <span class="sys-badge sys-asbremen"><span class="dot"></span>AS Bremen</span>
+  <span class="sys-badge" style="background:var(--purple-soft);color:var(--purple);border-color:#c4b5fd"><span class="dot" style="background:var(--purple)"></span>Edtime</span>
 </div>
 
 <!-- Tabs -->
 <div class="tabs">
   <button class="tab active" onclick="switchTab('uebersicht')">Übersicht</button>
-  <button class="tab" onclick="switchTab('kunden')">Kundenliste</button>
-  <button class="tab" onclick="switchTab('asbremen')">AS Bremen</button>
-  <button class="tab" onclick="switchTab('empfehlungen')">Handlungsempfehlungen</button>
-  <button class="tab" onclick="switchTab('mitarbeiter')">Stunden / Mitarbeiter</button>
-  <button class="tab" onclick="switchTab('rohtext')">Rohtext</button>
-  <button class="tab" onclick="switchTab('ausdruck')" style="margin-left:auto;color:var(--teal);font-weight:600">Ausdruck / 1-Seiter</button>
+  <button class="tab" onclick="switchTab('finanzen')">Finanzen &amp; BWA</button>
+  <button class="tab" onclick="switchTab('kunden')">Klienten</button>
+  <button class="tab" onclick="switchTab('mitarbeiter')">Mitarbeiter &amp; Edtime</button>
+  <button class="tab" onclick="switchTab('cfo')">Standortbewertung</button>
+  <button class="tab" onclick="switchTab('empfehlungen')">CEO Insights</button>
+  <button class="tab" onclick="switchTab('ausdruck')" style="margin-left:auto;color:var(--teal);font-weight:600">Monatsabschluss</button>
+  <button class="tab" onclick="switchTab('rohtext')">Rohdaten</button>
 </div>
 
-<!-- TAB: Übersicht -->
+<!-- ═══════════════════════════════════════ TAB: Übersicht ═══════════════════════════════════════ -->
 <div id="tab-uebersicht" class="tab-panel active">
+
+  <!-- ═══ KOMPAKT-COCKPIT: die wichtigsten Themen auf einen Blick ═══ -->
+  <div class="cockpit" id="cockpit">
+    <div class="cockpit-head">
+      <div class="cockpit-title" id="cockpitTitle">Das Wichtigste auf einen Blick</div>
+      <div class="cockpit-date" id="cockpitDate"></div>
+    </div>
+    <div class="cockpit-grid" id="cockpitGrid">
+      <div class="cockpit-empty">Bitte oben Daten importieren – danach erscheinen hier automatisch die wichtigsten Kennzahlen und Warnsignale.</div>
+    </div>
+    <div class="cockpit-flags" id="cockpitFlags"></div>
+  </div>
 
   <div class="section">
     <div class="section-title">Kennzahlen gesamt</div>
@@ -254,6 +429,17 @@ tr:last-child td { border-bottom: none; }
       <div class="kpi kpi-green"><div class="k-label">A-Kunden</div><div class="k-val" id="kA">–</div><div class="k-sub">über 500 €</div></div>
       <div class="kpi kpi-red"><div class="k-label">D-Kunden</div><div class="k-val" id="kD">–</div><div class="k-sub">unter 200 €</div></div>
       <div class="kpi kpi-amber"><div class="k-label">Offene Posten</div><div class="k-val" id="kOp">–</div><div class="k-sub">AS Bremen</div></div>
+    </div>
+  </div>
+
+  <!-- Finanz-KPIs in der Übersicht -->
+  <div class="section">
+    <div class="section-title">Finanzkennzahlen (Monat)</div>
+    <div class="kpi-strip">
+      <div class="kpi kpi-green"><div class="k-label">Umsatz</div><div class="k-val" id="kFinUmsatz">–</div><div class="k-sub">Monatsumsatz</div></div>
+      <div class="kpi kpi-red"><div class="k-label">Personalkosten</div><div class="k-val" id="kFinPersonal">–</div><div class="k-sub">Bruttolöhne</div></div>
+      <div class="kpi kpi-amber"><div class="k-label">SV-Beitrag AG</div><div class="k-val" id="kFinSV">–</div><div class="k-sub">Arbeitgeberanteil</div></div>
+      <div class="kpi kpi-blue"><div class="k-label">Liquidität</div><div class="k-val" id="kFinLiqui">–</div><div class="k-sub">Kontostand</div></div>
     </div>
   </div>
 
@@ -282,10 +468,10 @@ tr:last-child td { border-bottom: none; }
     <div class="section-title">Auslastung</div>
     <div class="card" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
       <div style="flex:1;min-width:200px">
-        <div class="ausl-bar-wrap"><div class="ausl-track"><div class="ausl-fill" id="auslFill" style="width:0%"></div></div></div>
-        <div style="font-size:12px;color:var(--muted);margin-top:6px" id="auslNote">Heimbas Stunden-PDF hochladen oder im Tab "Stunden / Mitarbeiter" eintragen.</div>
+        <div class="ausl-bar-wrap"><div class="ausl-track"><div class="ausl-fill" id="auslFillOv" style="width:0%"></div></div></div>
+        <div style="font-size:12px;color:var(--muted);margin-top:6px" id="auslNoteOv">Heimbas Stunden-PDF oder Edtime-Dateien hochladen.</div>
       </div>
-      <div style="font-size:28px;font-weight:600" id="auslPct">–</div>
+      <div style="font-size:28px;font-weight:600" id="auslPctOv">–</div>
     </div>
   </div>
 
@@ -307,7 +493,234 @@ tr:last-child td { border-bottom: none; }
   </div>
 </div>
 
-<!-- TAB: Kundenliste -->
+<!-- ═══════════════════════════════════════ TAB: Finanzen ═══════════════════════════════════════ -->
+<div id="tab-finanzen" class="tab-panel">
+  <div style="margin-bottom:16px;font-size:13px;color:var(--muted)">Monatliche Finanzübersicht mit Umsatz, Kosten, Liquidität und BWA-Kennzahlen. Werte manuell eingeben.</div>
+
+  <div class="section">
+    <div class="section-title">Monatliche Eingaben</div>
+    <div class="card">
+      <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">
+        <div><label>Monat / Jahr</label><input type="month" id="finMonat" onchange="calcFinanzen()" /></div>
+        <div><label>Umsatz (Heimbas-Erlöse) €</label><input type="text" id="finUmsatz" placeholder="z. B. 18500" oninput="calcFinanzen()" /></div>
+        <div><label>Personalkosten (Brutto) €</label><input type="text" id="finPersonal" placeholder="z. B. 12000" oninput="calcFinanzen()" /></div>
+        <div><label>SV-Beitrag Arbeitgeber €</label><input type="text" id="finSV" placeholder="z. B. 2400" oninput="calcFinanzen()" /></div>
+        <div><label>Sonstige Kosten €</label><input type="text" id="finSonstige" placeholder="z. B. 1500" oninput="calcFinanzen()" /></div>
+        <div><label>Kontostand / Liquidität €</label><input type="text" id="finLiqui" placeholder="z. B. 8500" oninput="calcFinanzen()" /></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Finanz-KPIs</div>
+    <div class="kpi-strip" id="finKpiStrip">
+      <div class="kpi kpi-green"><div class="k-label">Umsatz</div><div class="k-val" id="finKUmsatz">–</div></div>
+      <div class="kpi kpi-red"><div class="k-label">Gesamtkosten</div><div class="k-val" id="finKKosten">–</div><div class="k-sub" id="finKKostenSub"></div></div>
+      <div class="kpi"><div class="k-label">Ergebnis</div><div class="k-val" id="finKErgebnis">–</div><div class="k-sub" id="finKErgebnisSub"></div></div>
+      <div class="kpi kpi-amber"><div class="k-label">Personalkostenquote</div><div class="k-val" id="finKPKQ">–</div><div class="k-sub">Ziel: &lt; 70 %</div></div>
+      <div class="kpi kpi-blue"><div class="k-label">Liquidität</div><div class="k-val" id="finKLiqui">–</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Kostenstruktur</div>
+    <div class="card">
+      <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center">
+        <div style="flex:1;min-width:250px">
+          <div id="finBarChart" class="fin-bar"></div>
+        </div>
+        <div style="min-width:200px" id="finBreakdown"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BWA Section -->
+  <div class="section">
+    <div class="section-title">BWA – Betriebswirtschaftliche Auswertung (vereinfacht)</div>
+    <div class="card">
+      <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-bottom:16px">
+        <div><label>Materialaufwand €</label><input type="text" id="bwaMaterial" placeholder="0" oninput="calcBWA()" /></div>
+        <div><label>Raumkosten €</label><input type="text" id="bwaRaum" placeholder="z. B. 800" oninput="calcBWA()" /></div>
+        <div><label>Versicherungen €</label><input type="text" id="bwaVers" placeholder="z. B. 300" oninput="calcBWA()" /></div>
+        <div><label>Kfz-Kosten €</label><input type="text" id="bwaKfz" placeholder="z. B. 600" oninput="calcBWA()" /></div>
+        <div><label>Abschreibungen €</label><input type="text" id="bwaAfa" placeholder="z. B. 200" oninput="calcBWA()" /></div>
+        <div><label>Sonstiger Aufwand €</label><input type="text" id="bwaSonstig" placeholder="z. B. 400" oninput="calcBWA()" /></div>
+      </div>
+      <div class="tbl-wrap">
+        <table id="bwaTable">
+          <thead><tr><th>Position</th><th class="num">Betrag</th><th class="num">% vom Umsatz</th></tr></thead>
+          <tbody id="bwaBody">
+            <tr><td colspan="3" style="color:var(--muted)">Bitte Umsatz und Kosten eingeben.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <button class="btn btn-sm" onclick="copyBWA()">BWA kopieren</button>
+        <button class="btn btn-sm" onclick="exportFinCsv()">CSV Export</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════ TAB: CFO Cockpit ═══════════════════════════════════════ -->
+<div id="tab-cfo" class="tab-panel">
+  <div style="margin-bottom:16px;font-size:13px;color:var(--muted)">Standortbewertung nach CFO Kriterien für ambulante Betreuungsdienste nach SGB XI. BWA, Heimbas und Edtime fließen automatisch ein.</div>
+
+  <div class="section">
+    <div class="section-title">CFO Annahmen</div>
+    <div class="card">
+      <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">
+        <div><label>Monatsumsatz €</label><input type="text" id="cfoUmsatz" placeholder="77.524" oninput="calcCFO()" /></div>
+        <div><label>Aktive Klienten</label><input type="text" id="cfoKlienten" placeholder="105" oninput="calcCFO()" /></div>
+        <div><label>Betreuungsstunden</label><input type="text" id="cfoStunden" placeholder="1.253" oninput="calcCFO()" /></div>
+        <div><label>Direkte Betreuungskosten €</label><input type="text" id="cfoDirekt" placeholder="41.177" oninput="calcCFO()" /></div>
+        <div><label>Innendienstkosten €</label><input type="text" id="cfoInnen" placeholder="15.231" oninput="calcCFO()" /></div>
+        <div><label>Fahrzeugkosten BWA €</label><input type="text" id="cfoFahrzeug" placeholder="1.741" oninput="calcCFO()" /></div>
+        <div><label>Fahrtkosten Edtime €</label><input type="text" id="cfoFahrtkosten" placeholder="0" oninput="calcCFO()" /></div>
+        <div><label>Fahrtzeiten Std.</label><input type="text" id="cfoFahrtzeit" placeholder="0" oninput="calcCFO()" /></div>
+        <div><label>Krankheitsstunden</label><input type="text" id="cfoKrank" placeholder="0" oninput="calcCFO()" /></div>
+        <div><label>Gemeinkosten sonstige €</label><input type="text" id="cfoGemein" placeholder="19.374" oninput="calcCFO()" /></div>
+        <div><label>Produktive Stunden je MA</label><input type="text" id="cfoStdMA" placeholder="120" value="120" oninput="calcCFO()" /></div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-teal" onclick="loadAprilCFO()">April Werte laden</button>
+        <button class="btn" onclick="syncCFOFromDashboard()">Aus Dashboard übernehmen</button>
+        <button class="btn" onclick="copyCFOReport()">CFO Report kopieren</button>
+      </div>
+      <div id="cfoBwaSource" style="margin-top:10px;font-size:12px;color:var(--muted)">BWA noch nicht geladen. Oben kann eine BWA PDF per Drag &amp; Drop analysiert werden.</div>
+      <div id="cfoEdtimeSource" style="margin-top:6px;font-size:12px;color:var(--muted)">Edtime noch nicht geladen. Oben können Fahrtzeiten, Fahrtkosten und Krankheiten importiert werden.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">CFO Kennzahlen</div>
+    <div class="kpi-strip">
+      <div class="kpi"><div class="k-label">DB je Klient</div><div class="k-val" id="cfoDbKlient">–</div><div class="k-sub" id="cfoDbKlientSub">Ziel &gt; 350 €</div></div>
+      <div class="kpi"><div class="k-label">DB je Stunde</div><div class="k-val" id="cfoDbStunde">–</div><div class="k-sub">Betreuungsstunde</div></div>
+      <div class="kpi"><div class="k-label">Break even Klienten</div><div class="k-val" id="cfoBreakKlienten">–</div><div class="k-sub">bei aktuellem Mix</div></div>
+      <div class="kpi"><div class="k-label">Klienten bis 10 T€ Gewinn</div><div class="k-val" id="cfoK10">–</div><div class="k-sub">Zielgröße</div></div>
+      <div class="kpi"><div class="k-label">Personalkostenquote</div><div class="k-val" id="cfoPkq">–</div><div class="k-sub">Ziel &lt; 60 %</div></div>
+      <div class="kpi"><div class="k-label">Standort Score</div><div class="k-val" id="cfoScore">–</div><div class="k-sub" id="cfoScoreSub">0 bis 100</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Standortbewertung nach Zielwerten</div>
+    <div class="col2">
+      <div class="card">
+        <div class="card-title">Einzelbewertungen</div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Kriterium</th><th class="num">Ist Wert</th><th>Zielwert</th><th>Bewertung</th><th class="num">Punkte</th></tr></thead>
+            <tbody id="cfoRatingBody"><tr><td colspan="5" style="color:var(--muted)">Bitte CFO Werte oder BWA laden.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Score Logik</div>
+        <div id="cfoScoreLogic" style="font-size:13px;line-height:1.7;color:var(--text)">
+          90–100 = Elite Standort<br>
+          75–89 = Stark<br>
+          60–74 = Solide<br>
+          40–59 = Sanierungsbedarf<br>
+          &lt; 40 = Kritisch
+        </div>
+        <div id="cfoBwaExtract" class="summary-pre" style="margin-top:12px;display:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Edtime Analyse</div>
+    <div class="col2">
+      <div class="card">
+        <div class="card-title">Fahrtzeiten, Fahrtkosten und Krankheiten</div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Kennzahl</th><th class="num">Ist Wert</th><th>Bewertung</th></tr></thead>
+            <tbody id="cfoEdtimeBody"><tr><td colspan="3" style="color:var(--muted)">Bitte Edtime Export laden oder Werte manuell eintragen.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Operative Wirkung</div>
+        <div id="cfoEdtimeImpact" class="summary-pre">Noch keine Edtime Daten.</div>
+      </div>
+    </div>
+    <div class="card" id="edtimeDetailCard" style="margin-top:14px">
+      <div id="edtimeDetailWrap">
+        <div style="font-size:12px;color:var(--muted)">Nach dem Hochladen der Edtime-Dateien erscheint hier die nachvollziehbare Herkunft jeder Zahl: pro Quelldatei und – bei der Zeiterfassung – pro Mitarbeiter.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Deckungsbeitragsrechnung</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Stufe</th><th class="num">Betrag</th><th class="num">Quote</th><th>Bewertung</th></tr></thead>
+        <tbody id="cfoDbBody"><tr><td colspan="4" style="color:var(--muted)">Bitte Werte eingeben.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Break even und Wachstum</div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-title">Zielgewinn Szenarien</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Zielgewinn</th><th class="num">Klienten</th><th class="num">Umsatz</th></tr></thead>
+          <tbody id="cfoBreakBody"><tr><td colspan="3" style="color:var(--muted)">Noch keine Berechnung.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Wachstumsmodell – Umsatz, Ergebnis und Personalbedarf</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Wachstum</th><th class="num">Umsatz</th><th class="num">DB</th><th class="num">Gewinn</th><th class="num">Wochenstd.</th><th class="num">Monatsstd.</th><th class="num">FTE</th><th>Personal</th></tr></thead>
+          <tbody id="cfoGrowthBody"><tr><td colspan="8" style="color:var(--muted)">Noch keine Berechnung.</td></tr></tbody>
+        </table>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:var(--muted)">FTE = Vollzeitäquivalente (Basis: produktive Std. je Mitarbeiter aus den CFO-Annahmen). Personalempfehlung gerundet auf realistische Einstellungsgröße.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Skalierungsplanung</div>
+    <div class="col2">
+      <div class="card">
+        <div class="card-title">Kapazität &amp; nächste Einstellung</div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Kennzahl</th><th class="num">Wert</th></tr></thead>
+            <tbody id="cfoScaleBody"><tr><td colspan="2" style="color:var(--muted)">Bitte CFO-Werte oder BWA laden.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Empfehlung</div>
+        <div id="cfoScaleAdvice" class="summary-pre">Noch keine Skalierungsempfehlung.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">CEO Insights</div>
+    <div class="actions-grid" id="cfoInsights">
+      <div class="action-card ac-teal"><div class="ac-head"><div class="ac-icon icon-teal"><svg fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg></div><div class="ac-title t-teal">CFO Daten erfassen</div></div><div class="ac-body">Nach Eingabe der April Werte entstehen konkrete Management Maßnahmen.</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Management Abschluss</div>
+    <div class="summary-pre" id="cfoReport">Noch kein CFO Report.</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ TAB: Klienten ═══════════════════════════════════════ -->
 <div id="tab-kunden" class="tab-panel">
   <div class="filter-row">
     <select id="segFilter" onchange="renderTable()">
@@ -327,7 +740,63 @@ tr:last-child td { border-bottom: none; }
   </div>
 </div>
 
-<!-- TAB: AS Bremen -->
+<!-- ═══════════════════════════════════════ TAB: Anfragen ═══════════════════════════════════════ -->
+<div id="tab-anfragen" class="tab-panel">
+  <div style="margin-bottom:16px;font-size:13px;color:var(--muted)">Tracking eingehender Kundenanfragen, Interessenten und Neuaufnahmen.</div>
+
+  <div class="section">
+    <div class="section-title">Anfragen-KPIs</div>
+    <div class="kpi-strip">
+      <div class="kpi kpi-purple"><div class="k-label">Offene Anfragen</div><div class="k-val" id="anfOffen">–</div></div>
+      <div class="kpi kpi-green"><div class="k-label">Angenommen</div><div class="k-val" id="anfAngenommen">–</div></div>
+      <div class="kpi kpi-red"><div class="k-label">Abgelehnt / Kapazität</div><div class="k-val" id="anfAbgelehnt">–</div></div>
+      <div class="kpi kpi-blue"><div class="k-label">Konversionsrate</div><div class="k-val" id="anfKonversion">–</div><div class="k-sub">Anfrage → Kunde</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Neue Anfrage erfassen</div>
+    <div class="card">
+      <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
+        <div><label>Datum</label><input type="date" id="anfDatum" /></div>
+        <div><label>Name / Kontakt</label><input type="text" id="anfName" placeholder="Vor- und Nachname" /></div>
+        <div><label>Quelle</label>
+          <select id="anfQuelle">
+            <option>Empfehlung</option>
+            <option>Pflegestützpunkt</option>
+            <option>Krankenhaus</option>
+            <option>Website</option>
+            <option>Pflegekasse</option>
+            <option>Sonstige</option>
+          </select>
+        </div>
+        <div><label>Status</label>
+          <select id="anfStatus">
+            <option>offen</option>
+            <option>in Bearbeitung</option>
+            <option>angenommen</option>
+            <option>abgelehnt</option>
+            <option>Warteliste</option>
+          </select>
+        </div>
+        <div><label>Notizen</label><input type="text" id="anfNotiz" placeholder="z. B. Pflegegrad 3, SGB XI" /></div>
+        <div style="display:flex;align-items:flex-end"><button class="btn btn-teal" onclick="addAnfrage()">Hinzufügen</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Anfragenliste</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Datum</th><th>Name</th><th>Quelle</th><th>Status</th><th>Notiz</th><th></th></tr></thead>
+        <tbody id="anfBody"><tr><td colspan="6" style="color:var(--muted)">Noch keine Anfragen erfasst.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ TAB: AS Bremen ═══════════════════════════════════════ -->
 <div id="tab-asbremen" class="tab-panel">
   <div style="margin-bottom:12px;font-size:13px;color:var(--muted)" id="asInfo">Noch kein AS-Bremen-Export geladen. CSV oder PDF hochladen.</div>
   <div class="kpi-strip" style="margin-bottom:16px">
@@ -343,9 +812,126 @@ tr:last-child td { border-bottom: none; }
   </div>
 </div>
 
-<!-- TAB: Handlungsempfehlungen -->
+<!-- ═══════════════════════════════════════ TAB: AS Kommunikation ═══════════════════════════════════════ -->
+<div id="tab-askomm" class="tab-panel">
+  <div style="margin-bottom:16px;font-size:13px;color:var(--muted)">Kommunikationsprotokoll mit AS Bremen. Aufgaben delegieren und Nachverfolgung sicherstellen.</div>
+
+  <div class="section">
+    <div class="section-title">Kommunikation erfassen</div>
+    <div class="card">
+      <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
+        <div><label>Datum</label><input type="date" id="commDatum" /></div>
+        <div><label>Kontaktperson AS Bremen</label><input type="text" id="commKontakt" placeholder="Name / Abteilung" /></div>
+        <div><label>Kanal</label>
+          <select id="commKanal">
+            <option>E-Mail</option>
+            <option>Telefon</option>
+            <option>Portal</option>
+            <option>Post</option>
+            <option>Fax</option>
+          </select>
+        </div>
+        <div><label>Thema</label>
+          <select id="commThema">
+            <option>Abrechnung</option>
+            <option>Offene Posten</option>
+            <option>Leistungsnachweis</option>
+            <option>Vertragsfragen</option>
+            <option>Reklamation</option>
+            <option>Sonstiges</option>
+          </select>
+        </div>
+        <div><label>Status</label>
+          <select id="commStatus">
+            <option>offen</option>
+            <option>delegiert</option>
+            <option>erledigt</option>
+            <option>wartet auf Rückmeldung</option>
+          </select>
+        </div>
+        <div><label>Delegiert an</label><input type="text" id="commDelegiert" placeholder="(optional) MA-Name" /></div>
+      </div>
+      <div style="margin-top:10px">
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px;font-weight:500">Inhalt / Notizen</label>
+        <textarea id="commInhalt" placeholder="Gesprächsinhalt, Vereinbarungen, nächste Schritte…" style="width:100%;font:inherit;font-size:12px;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--text);min-height:60px;resize:vertical"></textarea>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <button class="btn btn-blue" onclick="addComm()">Eintrag speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Kommunikationsprotokoll</div>
+    <div class="kpi-strip" style="margin-bottom:14px">
+      <div class="kpi"><div class="k-label">Gesamt</div><div class="k-val" id="commTotal">0</div></div>
+      <div class="kpi kpi-amber"><div class="k-label">Offen</div><div class="k-val" id="commOffen">0</div></div>
+      <div class="kpi kpi-purple"><div class="k-label">Delegiert</div><div class="k-val" id="commDelegiert2">0</div></div>
+      <div class="kpi kpi-green"><div class="k-label">Erledigt</div><div class="k-val" id="commErledigt">0</div></div>
+    </div>
+    <div id="commList" style="margin-bottom:12px">
+      <div style="font-size:13px;color:var(--muted);padding:12px">Noch keine Einträge.</div>
+    </div>
+    <button class="btn btn-sm" onclick="exportCommCsv()">Protokoll als CSV</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ TAB: Regionale Entgelte ═══════════════════════════════════════ -->
+<div id="tab-entgelte" class="tab-panel">
+  <div style="margin-bottom:16px;font-size:13px;color:var(--muted)">Regionale Entgeltsätze für Alltagsbegleitung / hauswirtschaftliche Versorgung nach SGB XI. Monatliche und jährliche Hochrechnung.</div>
+
+  <div class="section">
+    <div class="section-title">Entgeltsatz-Eingabe</div>
+    <div class="card">
+      <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
+        <div><label>Stundensatz (vereinbart) €</label><input type="text" id="entStundensatz" placeholder="z. B. 34,50" value="34,50" oninput="calcEntgelte()" /></div>
+        <div><label>Stunden / Woche (Ø pro Kunde)</label><input type="text" id="entStdWoche" placeholder="z. B. 4" value="4" oninput="calcEntgelte()" /></div>
+        <div><label>Anzahl Kunden</label><input type="text" id="entKunden" placeholder="z. B. 15" oninput="calcEntgelte()" /></div>
+        <div><label>Wochen / Monat</label><input type="text" id="entWochenMonat" placeholder="4,33" value="4,33" oninput="calcEntgelte()" /></div>
+        <div><label>Wegepauschale / Einsatz €</label><input type="text" id="entWege" placeholder="z. B. 5,20" value="5,20" oninput="calcEntgelte()" /></div>
+        <div><label>Einsätze / Woche (Ø pro Kunde)</label><input type="text" id="entEinsaetze" placeholder="z. B. 3" value="3" oninput="calcEntgelte()" /></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Hochrechnung</div>
+    <div class="kpi-strip" style="margin-bottom:16px">
+      <div class="kpi kpi-green"><div class="k-label">Erlös / Monat</div><div class="k-val" id="entMonat">–</div><div class="k-sub">alle Kunden</div></div>
+      <div class="kpi kpi-green"><div class="k-label">Erlös / Jahr</div><div class="k-val" id="entJahr">–</div><div class="k-sub">Hochrechnung 12 Monate</div></div>
+      <div class="kpi kpi-blue"><div class="k-label">Ø Erlös / Kunde / Monat</div><div class="k-val" id="entProKunde">–</div></div>
+      <div class="kpi"><div class="k-label">Wegepauschalen / Monat</div><div class="k-val" id="entWegeMonat">–</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Detailrechnung</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Position</th><th class="num">Monat</th><th class="num">Jahr</th></tr></thead>
+          <tbody id="entBody">
+            <tr><td colspan="3" style="color:var(--muted)">Bitte Stundensatz und Kunden eingeben.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Regionale Vergleichssätze (Bayern / Oberbayern)</div>
+    <div class="card">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Orientierungswerte für ambulante Alltagsbegleitung (§ 45a SGB XI) und hauswirtschaftliche Versorgung in der Region Oberbayern. Bitte jeweils mit dem eigenen Vergütungssatz abgleichen.</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Leistungsart</th><th class="num">Satz (Ø Region)</th><th class="num">Ihr Satz</th><th class="num">Differenz</th></tr></thead>
+          <tbody id="entVergleichBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ TAB: CEO Insights ═══════════════════════════════════════ -->
 <div id="tab-empfehlungen" class="tab-panel">
-  <div style="margin-bottom:16px;font-size:13px;color:var(--muted)">Automatisch generiert auf Basis der geladenen Daten.</div>
+  <div style="margin-bottom:16px;font-size:13px;color:var(--muted)">Automatische CEO Handlungsempfehlungen aus BWA, Klientenstruktur, Stunden, Fahrtzeiten, Fahrtkosten und Krankheitsquote.</div>
   <div class="actions-grid" id="actionsGrid">
     <div class="action-card ac-teal">
       <div class="ac-head">
@@ -357,9 +943,9 @@ tr:last-child td { border-bottom: none; }
   </div>
 </div>
 
-<!-- TAB: Stunden / Mitarbeiter -->
+<!-- ═══════════════════════════════════════ TAB: Mitarbeiter & Edtime ═══════════════════════════════════════ -->
 <div id="tab-mitarbeiter" class="tab-panel">
-  <div style="margin-bottom:14px;font-size:13px;color:var(--muted)">Aus dem Heimbas Stunden/Mitarbeiter-Export automatisch befüllt. Werte manuell anpassbar.</div>
+  <div style="margin-bottom:14px;font-size:13px;color:var(--muted)">Aus Heimbas und Edtime automatisch befüllt. Fahrtzeiten, Fahrtkosten und Krankheitsdaten können als mehrere Dateien importiert werden.</div>
   <div class="card" style="margin-bottom:14px">
     <div class="card-title">Auslastung</div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
@@ -381,29 +967,39 @@ tr:last-child td { border-bottom: none; }
   </div>
 </div>
 
-<!-- TAB: Rohtext -->
+<!-- ═══════════════════════════════════════ TAB: Rohtext ═══════════════════════════════════════ -->
 <div id="tab-rohtext" class="tab-panel">
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-    <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Regex – Namen</label><input type="text" id="nameRx" value="^([A-ZÄÖÜ][A-Za-zÄÖÜäöüß\-]+(?:\s+[A-ZÄÖÜ][A-Za-zÄÖÜäöüß\-]+){0,3})$" style="width:100%;font:inherit;font-size:12px;padding:6px 9px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--text)" /></div>
-    <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Regex – Beträge</label><input type="text" id="amountRx" value="(-?\d{1,3}(?:\.\d{3})*,\d{2})\s*€?" style="width:100%;font:inherit;font-size:12px;padding:6px 9px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--text)" /></div>
+  <div style="margin-bottom:12px;font-size:13px;color:var(--muted)">
+    Hier sehen Sie den aus dem PDF extrahierten Rohtext. Falls die automatische Erkennung nicht funktioniert, können Sie den Text manuell bearbeiten, die Regex-Muster anpassen und erneut auswerten.
   </div>
-  <textarea id="rawTA" style="width:100%;font:DM Mono,monospace;font-size:11px;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--text);min-height:180px;resize:vertical;margin-bottom:10px" placeholder="Hier erscheint der extrahierte PDF-Text zur Prüfung."></textarea>
-  <button class="btn btn-teal" onclick="reanalyze()">Erneut auswerten</button>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+    <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Regex – Namen (zusätzlich zu eingebauten Mustern)</label><input type="text" id="nameRx" value="^([A-ZÄÖÜ][A-Za-zÄÖÜäöüß\-]+(?:\s+[A-ZÄÖÜ][A-Za-zÄÖÜäöüß\-]+){0,3})$" style="width:100%;font:inherit;font-size:12px;padding:6px 9px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--text)" /></div>
+    <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Regex – Beträge (zusätzlich zu eingebauten Mustern)</label><input type="text" id="amountRx" value="(-?\d{1,3}(?:\.\d{3})*,\d{2})\s*€?" style="width:100%;font:inherit;font-size:12px;padding:6px 9px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--text)" /></div>
+  </div>
+  <textarea id="rawTA" style="width:100%;font:DM Mono,monospace;font-size:11px;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--text);min-height:240px;resize:vertical;margin-bottom:10px" placeholder="Hier erscheint der extrahierte PDF-Text zur Prüfung. Sie können hier auch Text manuell einfügen und auswerten lassen."></textarea>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+    <button class="btn btn-teal" onclick="reanalyze()">Erneut auswerten</button>
+    <button class="btn" onclick="runDiagnostics()">Diagnostik ausführen</button>
+    <button class="btn" onclick="document.getElementById('rawTA').value='';setStatus('Rohtext gelöscht.')">Text löschen</button>
+  </div>
+  <div id="diagOutput" class="summary-pre" style="display:none;margin-top:10px;max-height:300px;overflow-y:auto"></div>
 </div>
 
-<!-- TAB: Ausdruck -->
+<!-- ═══════════════════════════════════════ TAB: Monatsabschluss ═══════════════════════════════════════ -->
 <div id="tab-ausdruck" class="tab-panel">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
-    <div style="font-size:13px;color:var(--muted)">Druckoptimierter 1-Seiter – direkt ausdrucken oder als PDF speichern.</div>
+    <div style="font-size:13px;color:var(--muted)">Monatsabschluss als druckoptimierter CFO Report. Direkt drucken, als PDF speichern oder lokal archivieren.</div>
     <div style="display:flex;gap:8px">
       <button class="btn btn-teal" onclick="window.print()">Drucken / Als PDF speichern</button>
+      <button class="btn btn-blue" onclick="exportCFOReportPDF()">Direkt als PDF speichern</button>
+      <button class="btn" onclick="saveLocalSnapshot()">JSON Snapshot</button>
+      <button class="btn" onclick="closeMonthArchive()">Monat abschließen</button>
       <button class="btn" onclick="copyPrintText()">Text kopieren</button>
     </div>
   </div>
 
   <div id="printSheet" style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:36px 40px;max-width:780px;margin:0 auto;font-family:'DM Sans',sans-serif">
 
-    <!-- Print header -->
     <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0f766e;padding-bottom:14px;margin-bottom:20px">
       <div>
         <div style="font-size:20px;font-weight:700;letter-spacing:-.5px;color:#0f766e" id="pr-title">Management-Report</div>
@@ -415,31 +1011,33 @@ tr:last-child td { border-bottom: none; }
       </div>
     </div>
 
-    <!-- KPI row -->
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px" id="pr-kpi-row">
-      <div style="background:#f0ede8;border-radius:10px;padding:12px 10px;text-align:center">
-        <div style="font-size:10px;color:#7a7570;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Kunden</div>
-        <div style="font-size:22px;font-weight:700;color:#1a1a1a" id="pr-k-tot">–</div>
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:20px" id="pr-kpi-row">
+      <div style="background:#f0ede8;border-radius:10px;padding:10px 8px;text-align:center">
+        <div style="font-size:9px;color:#7a7570;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Kunden</div>
+        <div style="font-size:20px;font-weight:700;color:#1a1a1a" id="pr-k-tot">–</div>
       </div>
-      <div style="background:#f0ede8;border-radius:10px;padding:12px 10px;text-align:center">
-        <div style="font-size:10px;color:#7a7570;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Gesamtumsatz</div>
-        <div style="font-size:16px;font-weight:700;color:#166534" id="pr-k-rev">–</div>
+      <div style="background:#f0ede8;border-radius:10px;padding:10px 8px;text-align:center">
+        <div style="font-size:9px;color:#7a7570;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Umsatz</div>
+        <div style="font-size:14px;font-weight:700;color:#166534" id="pr-k-rev">–</div>
       </div>
-      <div style="background:#f0ede8;border-radius:10px;padding:12px 10px;text-align:center">
-        <div style="font-size:10px;color:#7a7570;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Ø Erlös</div>
-        <div style="font-size:16px;font-weight:700;color:#185fa5" id="pr-k-avg">–</div>
+      <div style="background:#f0ede8;border-radius:10px;padding:10px 8px;text-align:center">
+        <div style="font-size:9px;color:#7a7570;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Ø Erlös</div>
+        <div style="font-size:14px;font-weight:700;color:#185fa5" id="pr-k-avg">–</div>
       </div>
-      <div style="background:#f0ede8;border-radius:10px;padding:12px 10px;text-align:center">
-        <div style="font-size:10px;color:#7a7570;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Auslastung</div>
-        <div style="font-size:16px;font-weight:700" id="pr-k-ausl">–</div>
+      <div style="background:#f0ede8;border-radius:10px;padding:10px 8px;text-align:center">
+        <div style="font-size:9px;color:#7a7570;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Auslastung</div>
+        <div style="font-size:14px;font-weight:700" id="pr-k-ausl">–</div>
       </div>
-      <div style="background:#f0ede8;border-radius:10px;padding:12px 10px;text-align:center">
-        <div style="font-size:10px;color:#7a7570;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Offene Posten</div>
-        <div style="font-size:16px;font-weight:700;color:#991b1b" id="pr-k-op">–</div>
+      <div style="background:#f0ede8;border-radius:10px;padding:10px 8px;text-align:center">
+        <div style="font-size:9px;color:#7a7570;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Off. Posten</div>
+        <div style="font-size:14px;font-weight:700;color:#991b1b" id="pr-k-op">–</div>
+      </div>
+      <div style="background:#f0ede8;border-radius:10px;padding:10px 8px;text-align:center">
+        <div style="font-size:9px;color:#7a7570;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Liquidität</div>
+        <div style="font-size:14px;font-weight:700;color:#185fa5" id="pr-k-liq">–</div>
       </div>
     </div>
 
-    <!-- Segment visual -->
     <div style="margin-bottom:20px">
       <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#7a7570;margin-bottom:8px">Kundensegmente (Heimbas)</div>
       <div style="display:flex;height:16px;border-radius:999px;overflow:hidden;background:#e2ddd8;margin-bottom:8px">
@@ -451,7 +1049,6 @@ tr:last-child td { border-bottom: none; }
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px" id="pr-seg-cards"></div>
     </div>
 
-    <!-- Two column: top customers + AS Bremen -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
       <div>
         <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#7a7570;margin-bottom:8px">Top-Kunden (A-Segment)</div>
@@ -463,16 +1060,14 @@ tr:last-child td { border-bottom: none; }
       </div>
     </div>
 
-    <!-- Handlungsempfehlungen -->
     <div style="margin-bottom:20px">
       <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#7a7570;margin-bottom:8px">Handlungsempfehlungen</div>
       <div id="pr-actions" style="display:grid;gap:7px"></div>
     </div>
 
-    <!-- Footer line -->
     <div style="border-top:1px solid #e2ddd8;padding-top:12px;display:flex;justify-content:space-between;align-items:center">
       <div style="font-size:10px;color:#7a7570">KM Fürsorge GmbH · Landsberg am Lech · Vertraulich</div>
-      <div style="font-size:10px;color:#7a7570">Heimbas + AS Bremen + Heimbas + AS Bremen</div>
+      <div style="font-size:10px;color:#7a7570">Heimbas + AS Bremen</div>
     </div>
 
   </div>
@@ -490,7 +1085,1777 @@ tr:last-child td { border-bottom: none; }
 }
 </style>
 
+<div class="footer">Standortleiter Dashboard v13 · KM Fürsorge GmbH · HOMECARE – die Alltagshelfer · Alle Daten lokal</div>
+
+</div>
+
 <script>
+/* ═══════════════════════════ CORE STATE ═══════════════════════════ */
+
+// PDF.js wird lazy geladen – siehe loadPdfJs()
+
+const S = {
+  customers: [],
+  asData: [],
+  stundenData: [],
+  rawText: '',
+  hBooked: 0,
+  hDone: 0,
+  anfragen: [],
+  commLog: [],
+  fin: { umsatz:0, personal:0, sv:0, sonstige:0, liqui:0, monat:'' },
+  bwa: { material:0, raum:0, vers:0, kfz:0, afa:0, sonstig:0 },
+  bwaImport: null,
+  edtimeImport: null
+};
+
+/* ═══════════════════════════ HELPERS ═══════════════════════════ */
+
+function fmt(v){return new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(v||0)}
+function fmtN(v){return new Intl.NumberFormat('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}).format(v||0)}
+function pct(a,b){return b>0?((a/b)*100).toFixed(1)+'\u202f%':'0,0\u202f%'}
+function cls(a){return a>500?'A':a>=400?'B':a>=200?'C':'D'}
+function todayDE(){return new Intl.DateTimeFormat('de-DE',{weekday:'long',year:'numeric',month:'long',day:'numeric'}).format(new Date())}
+function todayISO(){return new Date().toISOString().slice(0,10)}
+function setStatus(t){document.getElementById('statusBar').textContent=t}
+function setText(id,val){const el=document.getElementById(id);if(el)el.textContent=val}
+function esc(v){return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function parseNum(id){return parseFloat((document.getElementById(id).value||'0').replace(/\./g,'').replace(',','.'))||0}
+
+function parseEuro(r){
+  const c=String(r||'').replace(/€/g,'').replace(/\s/g,'').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',','.');
+  const n=Number(c);return Number.isFinite(n)?n:NaN;
+}
+
+/* ═══════════════════════════ TAB SWITCHING ═══════════════════════════ */
+
+const TAB_IDS=['uebersicht','finanzen','kunden','mitarbeiter','cfo','empfehlungen','ausdruck','rohtext'];
+
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    t.classList.toggle('active',TAB_IDS[i]===id);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id==='tab-'+id));
+  if(id==='ausdruck')buildPrint();
+  if(id==='entgelte')calcEntgelte();
+  if(id==='finanzen'){calcFinanzen();calcBWA();}
+  if(id==='cfo')calcCFO();
+}
+
+/* ═══════════════════════════ PDF READING ═══════════════════════════ */
+
+// PDF.js CDN-Quellen – werden der Reihe nach versucht
+const PDFJS_SOURCES=[
+  {lib:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+   worker:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'},
+  {lib:'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js',
+   worker:'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js'},
+  {lib:'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js',
+   worker:'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js'},
+  {lib:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.js',
+   worker:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.js'}
+];
+
+async function loadPdfJs(){
+  if(typeof pdfjsLib!=='undefined'&&pdfjsLib.getDocument)return;
+  setStatus('PDF.js wird geladen…');
+  let lastErr='Unbekannt';
+  for(const src of PDFJS_SOURCES){
+    try{
+      await new Promise((resolve,reject)=>{
+        const sc=document.createElement('script');
+        sc.src=src.lib;
+        sc.onload=()=>{
+          if(typeof pdfjsLib!=='undefined'){
+            try{pdfjsLib.GlobalWorkerOptions.workerSrc=src.worker;}catch(e){}
+            resolve();
+          }else{reject(new Error('pdfjsLib nicht definiert'));}
+        };
+        sc.onerror=()=>reject(new Error('Laden fehlgeschlagen: '+src.lib));
+        document.head.appendChild(sc);
+      });
+      return; // Erfolg – fertig
+    }catch(e){
+      lastErr=e.message;
+      console.warn('PDF.js CDN fehlgeschlagen:',src.lib,'-',e.message);
+    }
+  }
+  throw new Error(
+    'PDF.js konnte nicht geladen werden (alle Quellen fehlgeschlagen).\n\n'+
+    'Mögliche Ursachen:\n'+
+    '• Keine Internetverbindung\n'+
+    '• Firmennetzwerk blockiert externe CDN-Quellen\n\n'+
+    'Lösung: PDF-Text über den Rohtext-Tab manuell einfügen, dann "Erneut auswerten" klicken.'
+  );
+}
+
+async function readPdfText(file){
+  await loadPdfJs();
+  const buf=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+  let allLines=[];
+  for(let p=1;p<=pdf.numPages;p++){
+    const pg=await pdf.getPage(p);
+    const ct=await pg.getTextContent();
+    // Group text items by Y-coordinate into lines
+    const items=ct.items.filter(it=>it.str.trim().length>0);
+    if(!items.length)continue;
+    // Sort by Y descending (PDF coords: bottom=0), then X ascending
+    items.sort((a,b)=>{
+      const dy=b.transform[5]-a.transform[5];
+      if(Math.abs(dy)>3)return dy;
+      return a.transform[4]-b.transform[4];
+    });
+    // Cluster into lines: items within 4pt Y are same line
+    const lines=[];
+    let curLine=[items[0]];
+    let curY=items[0].transform[5];
+    for(let i=1;i<items.length;i++){
+      const it=items[i];
+      if(Math.abs(it.transform[5]-curY)<=4){
+        curLine.push(it);
+      }else{
+        lines.push(curLine);
+        curLine=[it];
+        curY=it.transform[5];
+      }
+    }
+    lines.push(curLine);
+    // Build text lines: sort each line by X, join with spacing
+    allLines.push('--- Seite '+p+' ---');
+    for(const line of lines){
+      line.sort((a,b)=>a.transform[4]-b.transform[4]);
+      let txt='';
+      for(let i=0;i<line.length;i++){
+        const it=line[i];
+        if(i>0){
+          const gap=it.transform[4]-(line[i-1].transform[4]+line[i-1].width);
+          if(gap>8)txt+='  |  '; // large gap = column separator
+          else if(gap>2)txt+=' ';
+        }
+        txt+=it.str;
+      }
+      allLines.push(txt.trim());
+    }
+  }
+  return allLines.join('\n');
+}
+
+/* Smart text extraction: also provides raw lines for better parsing */
+async function readPdfStructured(file){
+  await loadPdfJs();
+  const buf=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+  const pages=[];
+  for(let p=1;p<=pdf.numPages;p++){
+    const pg=await pdf.getPage(p);
+    const ct=await pg.getTextContent();
+    const items=ct.items.filter(it=>it.str.trim().length>0);
+    if(!items.length)continue;
+    items.sort((a,b)=>{
+      const dy=b.transform[5]-a.transform[5];
+      if(Math.abs(dy)>3)return dy;
+      return a.transform[4]-b.transform[4];
+    });
+    const lines=[];
+    let curLine=[items[0]];
+    let curY=items[0].transform[5];
+    for(let i=1;i<items.length;i++){
+      const it=items[i];
+      if(Math.abs(it.transform[5]-curY)<=4){
+        curLine.push(it);
+      }else{
+        lines.push(curLine);
+        curLine=[it];
+        curY=it.transform[5];
+      }
+    }
+    lines.push(curLine);
+    const pageLines=[];
+    for(const line of lines){
+      line.sort((a,b)=>a.transform[4]-b.transform[4]);
+      const cells=[];
+      let cell=[line[0]];
+      for(let i=1;i<line.length;i++){
+        const gap=line[i].transform[4]-(line[i-1].transform[4]+line[i-1].width);
+        if(gap>8){
+          cells.push(cell.map(c=>c.str).join(' ').trim());
+          cell=[line[i]];
+        }else{
+          cell.push(line[i]);
+        }
+      }
+      cells.push(cell.map(c=>c.str).join(' ').trim());
+      const fullText=cells.join('  |  ');
+      pageLines.push({cells,fullText,y:line[0].transform[5]});
+    }
+    pages.push({page:p,lines:pageLines});
+  }
+  return pages;
+}
+
+/* ═══════════════════════════ CUSTOMER EXTRACTION ═══════════════════════════ */
+
+function extractCustomers(text){
+  const lines=text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+
+  // ── Strategie 1: Heimbas Rechnungsvorschau-Spaltenformat ──────────────────
+  // pdf.js extrahiert die Tabelle spaltenweise:
+  //   • Alle Namen (Nachname, Vorname) – dokumentweit
+  //   • Alle Adressen – dokumentweit
+  //   • "Erlöse" → alle Erlös-Beträge
+  //   • "Löhne"  → (ignoriert)
+  //   • "Marge"  → (ignoriert)
+  // Strategie: Namen und Erlöse global sammeln, dann per Index zusammenführen.
+
+  const amtOnlyRx=/^(\d+,\d{2})\s*€$/;  // Heimbas: kein Tausendertrennzeichen
+  const plzRx=/\b\d{5}\b/;
+  const skipRx=/^(erlöse|löhne|marge|gesamt|summe|anschrift|kunde|zeitraum|rechnungsvorschau|seite|druckzeitpunkt|km\s+fürsorge|roßmarkt)/i;
+
+  // Prüfe ob "Erlöse"-Marker vorhanden (Heimbas-Indikator)
+  const hasErloeseMarker=lines.some(l=>/^erlöse$/i.test(l));
+
+  if(hasErloeseMarker){
+    // --- Schritt 1: Alle Erlös-Beträge sammeln ---
+    const allAmts=[];
+    let inErloese=false;
+    for(const l of lines){
+      if(/^erlöse$/i.test(l)){inErloese=true;continue;}
+      if(/^(löhne|marge)$/i.test(l)){inErloese=false;continue;}
+      if(inErloese&&amtOnlyRx.test(l)){
+        const v=parseEuro(l.replace('€','').trim());
+        if(Number.isFinite(v))allAmts.push(v);
+      }
+    }
+
+    // --- Schritt 2: Alle Namen sammeln ---
+    const allNames=[];
+    for(const l of lines){
+      if(skipRx.test(l))continue;
+
+      // Fall A: Zeile enthält PLZ → evtl. Name+Adresse zusammen
+      if(plzRx.test(l)){
+        const plzPos=l.search(plzRx);
+        let before=l.slice(0,plzPos).trim();
+        // Entferne Ortsname (letztes Wort vor PLZ) und Hausnummer
+        before=before.replace(/\s+\S+\s*$/,'').trim();                         // Ort
+        before=before.replace(/,?\s*\d+[A-Za-z]?(?:\s+[A-Za-z])?\s*$/,'').trim(); // Hausnr
+        // Entferne Straßennamen (enden auf str., straße, weg, gasse, allee etc.)
+        before=before.replace(/,?\s*\w+(?:str\.|straße|weg|gasse|allee|platz|ring|steig|pfad|hof|berg|feld|bach|anger)\w*\s*$/i,'').trim();
+        before=before.replace(/,?\s*(?:Am|An|Im|In|Auf|Bei|Vor|Hinter|Unter|Ober|Alt|St\.|Von)\s+\S+.*$/i,'').trim();
+        if(before&&before.includes(',')&&/^[A-ZÄÖÜ]/.test(before)&&before.length>3&&!/\d$/.test(before)&&!/str\.|straße|weg|gasse|allee|platz|ring|kirch|bach|berg/i.test(before)){
+          allNames.push(before);
+        }
+        continue;
+      }
+
+      // Fall B: Reine Namens-Zeile "Nachname, Vorname"
+      // Muss Komma nach erstem Wort haben, nach dem Komma keine Zahl
+      if(/^[A-ZÄÖÜ][A-Za-zÄÖÜäöüß\-]+\s*,\s*[A-Za-zÄÖÜäöüß\-]/.test(l)){
+        const afterComma=(l.split(',')[1]||'').trim();
+        if(!/^\d/.test(afterComma)){
+          allNames.push(l);
+        }
+      }
+    }
+
+    // --- Schritt 3: Per Index zusammenführen ---
+    const count=Math.min(allNames.length,allAmts.length);
+    if(count>0){
+      const result=[];
+      for(let i=0;i<count;i++){
+        const name=allNames[i].replace(/\s{2,}/g,' ').trim();
+        const amt=allAmts[i];
+        result.push({customer:name, amount:amt, segment:cls(amt), source:'Heimbas-Rechnungsvorschau'});
+      }
+      return result.sort((a,b)=>b.amount-a.amount);
+    }
+  }
+
+  // ── Strategie 2: Generischer Fallback ──────────────────────────────────────
+  const amtRx=/(\d{1,3}(?:\.\d{3})*,\d{2})\s*€/g;
+  const nameRxFb=/^([A-ZÄÖÜ][A-Za-zÄÖÜäöüß\-]+(?:[,\s]+[A-Za-zÄÖÜäöüß\-]+){1,4})$/;
+  const skipRx2=/^(---|seite|gesamt|summe|datum|betrag|zeitraum|kunde|nr\.?|pos\.?|rechnungsvorschau|übersicht)/i;
+
+  const raw=[];
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i];
+    if(skipRx2.test(line))continue;
+    const amts=[...line.matchAll(amtRx)].map(m=>parseEuro(m[1])).filter(v=>Number.isFinite(v)&&v>0&&v<100000);
+    if(!amts.length)continue;
+    const amt=amts[0];
+    let name='';
+    for(let j=i-1;j>=Math.max(0,i-4);j--){
+      if(skipRx2.test(lines[j]))continue;
+      if([...lines[j].matchAll(amtRx)].length)break;
+      if(nameRxFb.test(lines[j])){name=lines[j];break;}
+    }
+    if(!name){
+      const cleaned=line.replace(/\d{1,3}(?:\.\d{3})*,\d{2}\s*€/g,'').replace(/\d+\s*%/g,'').replace(/[€|;]/g,' ').replace(/\b\d{5}\b.*/,'').replace(/\s+/g,' ').trim();
+      if(cleaned.length>3&&cleaned.length<60&&!/^\d+$/.test(cleaned))name=cleaned;
+    }
+    if(!name)name='Unbekannt '+(raw.length+1);
+    name=name.replace(/\s+\d{2}\.\d{2}\.\d{4}.*$/,'').trim();
+    raw.push({customer:name,amount:amt,segment:cls(amt),source:line});
+  }
+  const grp=new Map();
+  for(const x of raw){
+    const k=x.customer.toLowerCase().replace(/\s+/g,' ');
+    if(!grp.has(k)||grp.get(k).amount<x.amount)grp.set(k,x);
+  }
+  return [...grp.values()].sort((a,b)=>b.amount-a.amount);
+}
+
+/* ═══════════════════════════ FILE LOADERS ═══════════════════════════ */
+
+/* Universeller Datei-Reader: PDF, Excel, CSV, TXT → Text */
+async function readAnyFileText(f){
+  const name=(f.name||'').toLowerCase();
+  if(name.endsWith('.pdf')||f.type==='application/pdf')return await readPdfText(f);
+  if(name.endsWith('.xlsx')||name.endsWith('.xls')){
+    await loadSheetJs();
+    const buf=await f.arrayBuffer();
+    const wb=XLSX.read(buf,{type:'array'});
+    return wb.SheetNames.map(sn=>{
+      const ws=wb.Sheets[sn];
+      const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:''});
+      return '### '+sn+' ###\n'+rows.map(r=>r.map(c=>String(c).trim()).filter((c,i,a)=>c!==''||i<a.length).join('  |  ').replace(/(\s*\|\s*)+$/,'')).filter(Boolean).join('\n');
+    }).join('\n\n');
+  }
+  return await f.text();
+}
+
+const SUPPORTED_FILE_RX=/\.(pdf|xlsx|xls|csv|txt)$/i;
+
+async function loadHeimbasPdf(e){
+  const f=e.target.files[0];if(!f)return;
+  setStatus('Analysiere Heimbas-Rechnungsvorschau: '+f.name+' … ('+Math.round(f.size/1024)+' KB)');
+  try{
+    const txt=await readAnyFileText(f);
+    processHeimbas(txt,f.name);
+  }catch(err){setStatus('Fehler beim Lesen: '+err.message); console.error(err);}
+}
+
+function processHeimbas(txt,fname){
+  document.getElementById('heimbasFileName').textContent=fname;
+  document.getElementById('zoneHeimbas').style.borderColor='#0f766e';
+  document.getElementById('zoneHeimbas').style.borderStyle='solid';
+  {
+    S.rawText=txt;
+    document.getElementById('rawTA').value=txt;
+    const lineCount=txt.split('\n').filter(x=>x.trim()).length;
+    setStatus('PDF-Text extrahiert: '+lineCount+' Zeilen. Starte Kundenanalyse…');
+    S.customers=extractCustomers(txt);
+    render();
+    if(S.customers.length){
+      setStatus('✓ Heimbas geladen: '+fname+' · '+S.customers.length+' Kunden erkannt · Gesamtumsatz: '+fmt(S.customers.reduce((s,x)=>s+x.amount,0)));
+    }else{
+      setStatus('⚠ Datei gelesen ('+lineCount+' Zeilen), aber 0 Kunden erkannt. Bitte den Rohtext-Tab prüfen.');
+      switchTab('rohtext');
+    }
+  }
+}
+
+async function loadHeimbasStundenPdf(e){
+  const f=e.target.files[0];if(!f)return;
+  setStatus('Analysiere Heimbas Stunden/Mitarbeiter: '+f.name+' … ('+Math.round(f.size/1024)+' KB)');
+  try{
+    const txt=await readAnyFileText(f);
+    processHeimbasStunden(txt,f.name);
+  }catch(err){setStatus('Fehler: '+err.message); console.error(err);}
+}
+
+function processHeimbasStunden(txt,fname){
+  document.getElementById('heimbasStundenFileName').textContent=fname;
+  document.getElementById('zoneHeimbasStunden').style.borderColor='#0f766e';
+  document.getElementById('zoneHeimbasStunden').style.borderStyle='solid';
+  S.rawText=txt;
+  document.getElementById('rawTA').value=txt;
+  parseHeimbasStunden(txt);
+}
+
+
+function euroFromText(v){
+  if(v===undefined||v===null)return 0;
+  const cleaned=String(v).replace(/€/g,'').replace(/\s/g,'').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',','.');
+  const n=Number(cleaned);
+  return Number.isFinite(n)?n:0;
+}
+
+function firstMonthlyAmount(text,label){
+  const rx=new RegExp(label+'\\s+(-?\\d{1,3}(?:\\.\\d{3})*|[-]?\\d+)(?:,\\d{2})?','i');
+  const m=text.match(rx);
+  return m?euroFromText(m[1]):0;
+}
+
+function parseBwaPdfText(text){
+  const flat=String(text||'').replace(/\|/g,' ').replace(/\u00a0/g,' ').replace(/[ \t]+/g,' ');
+  const monthMatch=flat.match(/Abrechnungszeitraum\s+(Januar\s+bis\s+April\s+2026|April\s+2026)|für den Monat\s+(April\s+2026)/i);
+  const month=(monthMatch&&(monthMatch[1]||monthMatch[2]))? (monthMatch[1]||monthMatch[2]) : 'BWA Monat';
+  const get=(label)=>firstMonthlyAmount(flat,label);
+  const data={
+    monat: month,
+    erloese: get('Summe Erlöse'),
+    personal: get('Personalkosten'),
+    medizin: get('Medizinischer Bedarf'),
+    energie: get('Energie, Wasser etc\\.'),
+    wirtschaft: get('Wirtschaftsbedarf'),
+    verwaltung: get('Verwaltungsaufwand'),
+    werbung: get('Werbung und Repräsentation'),
+    fahrzeug: get('Fahrzeugkosten'),
+    miete: get('Mieten, Pachten, Leasing'),
+    steuern: get('Steuern, Abgaben und Versicherungen'),
+    afa: get('Abschreibungen'),
+    finanz: get('Finanzierungskosten, so\\. kalk\\. Kosten'),
+    kosten: get('Summe Kosten'),
+    ergebnis: get('Betriebsergebnis') || get('Gewinn/Verlust')
+  };
+  data.sonstigeGemein=data.medizin+data.energie+data.wirtschaft+data.verwaltung+data.werbung+data.miete+data.steuern+data.afa+data.finanz;
+  return data;
+}
+
+function applyBwaToDashboard(data,fileName){
+  if(!data||!data.erloese){
+    setStatus('BWA konnte gelesen werden, aber die Monatswerte wurden nicht sicher erkannt.');
+    return;
+  }
+  S.bwaImport=data;
+  document.getElementById('finMonat').value='2026-04';
+  document.getElementById('finUmsatz').value=fmtN(data.erloese).replace(',00','');
+  document.getElementById('finPersonal').value=fmtN(data.personal).replace(',00','');
+  document.getElementById('finSV').value='0';
+  document.getElementById('finSonstige').value='0';
+  document.getElementById('bwaMaterial').value=fmtN(data.medizin+data.wirtschaft+data.energie).replace(',00','');
+  document.getElementById('bwaRaum').value=fmtN(data.miete).replace(',00','');
+  document.getElementById('bwaVers').value=fmtN(data.steuern).replace(',00','');
+  document.getElementById('bwaKfz').value=fmtN(data.fahrzeug).replace(',00','');
+  document.getElementById('bwaAfa').value=fmtN(data.afa).replace(',00','');
+  document.getElementById('bwaSonstig').value=fmtN(data.verwaltung+data.werbung+data.finanz).replace(',00','');
+
+  const keepDirect=parseNum('cfoDirekt');
+  const keepInnen=parseNum('cfoInnen');
+  document.getElementById('cfoUmsatz').value=fmtN(data.erloese).replace(',00','');
+  if(!parseNum('cfoKlienten') && S.customers.length)document.getElementById('cfoKlienten').value=String(S.customers.length);
+  if(!parseNum('cfoStunden') && S.hDone)document.getElementById('cfoStunden').value=fmtN(S.hDone).replace(',00','');
+  document.getElementById('cfoDirekt').value=fmtN(keepDirect || data.personal).replace(',00','');
+  document.getElementById('cfoInnen').value=fmtN(keepInnen || 0).replace(',00','');
+  document.getElementById('cfoFahrzeug').value=fmtN(data.fahrzeug).replace(',00','');
+  document.getElementById('cfoGemein').value=fmtN(data.sonstigeGemein).replace(',00','');
+
+  const src=document.getElementById('cfoBwaSource');
+  if(src)src.textContent='BWA geladen: '+(fileName||'PDF')+' · '+data.monat+' · Umsatz '+fmt(data.erloese)+' · Ergebnis '+fmt(data.ergebnis);
+  const ext=document.getElementById('cfoBwaExtract');
+  if(ext){
+    ext.style.display='block';
+    ext.textContent='BWA Extrakt\n'+
+      'Umsatz: '+fmt(data.erloese)+'\n'+
+      'Personalkosten: '+fmt(data.personal)+'\n'+
+      'Fahrzeugkosten: '+fmt(data.fahrzeug)+'\n'+
+      'Verwaltung: '+fmt(data.verwaltung)+'\n'+
+      'Gemeinkosten gesamt: '+fmt(data.sonstigeGemein)+'\n'+
+      'BWA Ergebnis: '+fmt(data.ergebnis);
+  }
+  calcFinanzen();
+  calcBWA();
+  calcCFO();
+  renderFinKpis();
+}
+
+async function loadBwaPdf(e){
+  const f=e.target.files[0];if(!f)return;
+  await handleBwaFile(f);
+}
+
+async function handleBwaFile(f){
+  setStatus('Analysiere BWA: '+f.name+' … ('+Math.round(f.size/1024)+' KB)');
+  try{
+    const txt=await readAnyFileText(f);
+    processBwa(txt,f.name);
+  }catch(err){setStatus('Fehler beim Lesen der BWA: '+err.message); console.error(err);}
+}
+
+function processBwa(txt,fname){
+  document.getElementById('bwaPdfFileName').textContent=fname;
+  document.getElementById('zoneBwaPdf').style.borderColor='#92400e';
+  document.getElementById('zoneBwaPdf').style.borderStyle='solid';
+  S.rawText=txt;
+  document.getElementById('rawTA').value=txt;
+  const data=parseBwaPdfText(txt);
+  applyBwaToDashboard(data,fname);
+  setStatus('✓ BWA analysiert: '+fname+' · Umsatz '+fmt(data.erloese)+' · Ergebnis '+fmt(data.ergebnis));
+  switchTab('cfo');
+}
+
+
+async function loadEdtimeFiles(e){
+  const files=[...(e.target.files||[])];
+  if(!files.length)return;
+  await handleEdtimeFiles(files);
+}
+
+async function loadEdtimeFile(e){
+  await loadEdtimeFiles(e);
+}
+
+async function loadSheetJs(){
+  if(window.XLSX)return;
+  setStatus('Excel Parser wird geladen…');
+  await new Promise((resolve,reject)=>{
+    const sc=document.createElement('script');
+    sc.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+    sc.onload=resolve;
+    sc.onerror=()=>reject(new Error('SheetJS konnte nicht geladen werden. Bitte CSV oder PDF verwenden.'));
+    document.head.appendChild(sc);
+  });
+}
+
+async function readEdtimeText(f){ return readAnyFileText(f); }
+
+function edtimeExtractNumberNear(text,keywords,mode){
+  const lines=String(text||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  const kw=new RegExp(keywords,'i');
+  const nums=[];
+  for(const line of lines){
+    if(!kw.test(line))continue;
+    const euro=[...line.matchAll(/(-?\d{1,3}(?:\.\d{3})*,\d{2}|-?\d+,\d{2}|-?\d+(?:\.\d+)?)(?=\s*(?:€|EUR|Euro))/gi)].map(m=>euroFromText(m[1]));
+    const hours=[...line.matchAll(/(-?\d{1,4}(?:[,.]\d{1,2})?)\s*(?:h|Std\.?|Stunden)/gi)].map(m=>parseFloat(m[1].replace(',','.'))||0);
+    const days=[...line.matchAll(/(-?\d{1,3}(?:[,.]\d{1,2})?)\s*(?:Tage|Tag|d)\b/gi)].map(m=>(parseFloat(m[1].replace(',','.'))||0)*8);
+    const generic=[...line.matchAll(/(-?\d{1,4}(?:[,.]\d{1,2})?)/g)].map(m=>parseFloat(m[1].replace(',','.'))||0).filter(v=>v>0&&v<100000);
+    if(mode==='euro')nums.push(...euro);
+    else if(mode==='hours')nums.push(...hours,...days,...(hours.length||days.length?[]:generic.filter(v=>v<1000)));
+    else nums.push(...generic);
+  }
+  if(!nums.length)return 0;
+  const sumLines=/summe|gesamt|total/i.test(lines.filter(l=>kw.test(l)).join(' '));
+  return sumLines?Math.max(...nums):nums.reduce((a,b)=>a+b,0);
+}
+
+function parseEdtimeText(text){
+  const flat=String(text||'').replace(/\u00a0/g,' ');
+  const low=flat.toLowerCase();
+
+  // ── Typ-Erkennung anhand charakteristischer Kopfzeilen der echten edtime-Exporte ──
+  const istZeiterfassung = /zeiterfassung\s+stundenübersicht|zeitart\s+arbeitszeit/i.test(flat);
+  const istFahrtkosten = /be-?\s*und\s*abz|summe bezüge/i.test(flat) && !istZeiterfassung;
+  const istAbwesenheit = /art der abwesenheit\s+art der vergütung|abwesenheiten zeitangaben/i.test(flat) && !istZeiterfassung;
+
+  let fahrtzeit=0, fahrtkosten=0, krank=0, kilometer=0, details=null;
+
+  if(istZeiterfassung){
+    const z=parseEdtimeZeiterfassung(flat);
+    fahrtzeit=z.fahrtzeit;
+    fahrtkosten=z.reisekosten;
+    krank=z.krank;
+    details=z.details;       // pro-Mitarbeiter-Aufschlüsselung für die Einsehbarkeit
+  }
+  else if(istFahrtkosten){
+    fahrtkosten=parseEdtimeFahrtkosten(flat);
+  }
+  else if(istAbwesenheit){
+    krank=parseEdtimeKrankheit(flat);
+  }
+  else {
+    // ── Fallback: generischer Parser ──
+    fahrtzeit=edtimeExtractNumberNear(flat,'fahrtzeit|fahrzeit|wegezeit|reisezeit','hours');
+    fahrtkosten=edtimeExtractNumberNear(flat,'fahrtkosten|fahrkosten|kilometergeld|km\\s*kosten|reisekosten|wegegeld','euro');
+    krank=edtimeExtractNumberNear(flat,'krankheit|krank|arbeitsunfähig|arbeitsunfaehig|fehlzeit','hours');
+    kilometer=edtimeExtractNumberNear(flat,'kilometer|\\bkm\\b','number');
+  }
+
+  return {fahrtzeit,fahrtkosten,krank,kilometer,details,typ:istZeiterfassung?'zeiterfassung':istFahrtkosten?'fahrtkosten':istAbwesenheit?'abwesenheit':'unbekannt',raw:flat.slice(0,4000)};
+}
+
+/* Zeiterfassung (Alle): summiert Fahrtzeiten (Std.), Reisekosten (€ je MA via Saldo) und Krankheitsstunden.
+   Liefert zusätzlich eine pro-Mitarbeiter-Aufschlüsselung für die Einsehbarkeit. */
+function parseEdtimeZeiterfassung(text){
+  const lines=text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  let fahrtzeit=0, reisekosten=0, krank=0;
+  // pro Mitarbeiter sammeln (Name steht in der Fußzeile jeder Seite vor "Zeiterfassung Stundenübersicht Seite")
+  const perMA={};       // name -> {fahrtzeit, reisekosten, krank}
+  let currentMA='Unbekannt';
+
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i];
+
+    // Fahrtzeit-Zeile: "Fahrtzeit 09:45 10:02 0,28 0:17"
+    if(/^Fahrtzeit\s/.test(line)){
+      const m=line.match(/(\d+,\d{2})\s+\d+:\d{2}\s*$/);
+      if(m){const v=parseFloat(m[1].replace(',','.'));fahrtzeit+=v;perMA[currentMA]=perMA[currentMA]||{fahrtzeit:0,reisekosten:0,krank:0};perMA[currentMA].fahrtzeit+=v;}
+    }
+
+    // Krankheit-Abwesenheit innerhalb der Zeiterfassung: "... Krankheit 2,0 2,0 10,00 10:00"
+    if(/\bKrankheit\b/.test(line)){
+      const m=line.match(/(\d+,\d{2})\s+\d+:\d{2}\s*$/);
+      if(m){const v=parseFloat(m[1].replace(',','.'));krank+=v;perMA[currentMA]=perMA[currentMA]||{fahrtzeit:0,reisekosten:0,krank:0};perMA[currentMA].krank+=v;}
+    }
+
+    // Reisekosten je MA: "Saldo (€) 155,40"
+    const rk=line.match(/^Saldo\s*\(€\)\s+([\d.]+,\d{2})$/);
+    if(rk){const v=euroFromText(rk[1]);reisekosten+=v;perMA[currentMA]=perMA[currentMA]||{fahrtzeit:0,reisekosten:0,krank:0};perMA[currentMA].reisekosten+=v;}
+
+    // Mitarbeitername aus Fußzeile: Zeile vor "Zeiterfassung Stundenübersicht Seite x / y"
+    const foot=line.match(/^(.+?)\s+Zeiterfassung Stundenübersicht Seite\s+\d+/);
+    if(foot){currentMA=foot[1].trim();}
+  }
+
+  const details=Object.keys(perMA).map(name=>({name,...perMA[name]}))
+    .filter(d=>d.fahrtzeit>0||d.reisekosten>0||d.krank>0)
+    .sort((a,b)=>b.fahrtzeit-a.fahrtzeit);
+
+  return {fahrtzeit,reisekosten,krank,details};
+}
+
+/* Fahrtkosten aus "Monatsabschluss Be- und Abzüge": bevorzugt "Summe Bezüge", sonst alle +xx,xx-Zeilen */
+function parseEdtimeFahrtkosten(text){
+  const lines=text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  for(const line of lines){
+    const m=line.match(/Summe\s+Bezüge\s*\+?\s*([\d.]+,\d{2})/i);
+    if(m)return euroFromText(m[1]);
+  }
+  // Fallback: alle Zeilen die nur aus einem +Betrag bestehen (Reisekosten-Positionen)
+  let summe=0;
+  for(const line of lines){
+    const m=line.match(/^\+\s*([\d.]+,\d{2})$/);
+    if(m)summe+=euroFromText(m[1]);
+  }
+  return summe;
+}
+
+/* Krankheitsstunden aus "Monatliche Abwesenheiten": nur echte Krankheit-Zeilen, Stunden = vorletzte Dezimalzahl */
+function parseEdtimeKrankheit(text){
+  const lines=text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  let stunden=0;
+  for(const line of lines){
+    if(!/\bKrankheit\b/.test(line))continue;      // Langzeitkrankheit hat 0,00 → zählt automatisch nicht
+    const nums=[...line.matchAll(/(\d+,\d{2})/g)].map(m=>parseFloat(m[1].replace(',','.')));
+    if(nums.length>=2)stunden+=nums[nums.length-2]; // vorletzte Zahl = Stunden, letzte = Tage
+  }
+  return stunden;
+}
+
+function applyEdtimeToDashboard(data,fileName){
+  S.edtimeImport=data;
+  if(data.fahrtzeit)document.getElementById('cfoFahrtzeit').value=fmtN(data.fahrtzeit).replace(',00','');
+  if(data.fahrtkosten)document.getElementById('cfoFahrtkosten').value=fmtN(data.fahrtkosten).replace(',00','');
+  if(data.krank)document.getElementById('cfoKrank').value=fmtN(data.krank).replace(',00','');
+  const src=document.getElementById('cfoEdtimeSource');
+  const count=(data.files&&data.files.length)||1;
+  if(src)src.textContent='Edtime geladen: '+count+' Datei(en) · Fahrtzeit '+fmtN(data.fahrtzeit)+' Std. · Fahrtkosten '+fmt(data.fahrtkosten)+' · Krankheit '+fmtN(data.krank)+' Std.';
+  renderEdtimeDetails(data);
+  calcCFO();
+}
+
+/* Macht die Edtime-Werte einsehbar: Aufschlüsselung pro Mitarbeiter + Quelldateien */
+function renderEdtimeDetails(data){
+  const wrap=document.getElementById('edtimeDetailWrap');
+  if(!wrap)return;
+  const det=(data.details||[]).slice().sort((a,b)=>b.fahrtzeit-a.fahrtzeit);
+  const fileRows=(data.files||[]).map(f=>{
+    if(f.error)return `<tr><td>${esc(f.name)}</td><td colspan="3" style="color:var(--red)">Fehler: ${esc(f.error)}</td></tr>`;
+    const typLabel={zeiterfassung:'Zeiterfassung',fahrtkosten:'Be- und Abzüge',abwesenheit:'Abwesenheiten',unbekannt:'unbekannt'}[f.typ]||f.typ||'?';
+    return `<tr><td>${esc(f.name)}</td><td>${esc(typLabel)}</td><td class="num">${f.fahrtzeit?fmtN(f.fahrtzeit)+' h':'–'}</td><td class="num">${f.fahrtkosten?fmt(f.fahrtkosten):'–'}</td><td class="num">${f.krank?fmtN(f.krank)+' h':'–'}</td></tr>`;
+  }).join('');
+
+  let html='';
+  html+='<div class="card-title">Quelldateien</div>';
+  html+='<div class="tbl-wrap" style="margin-bottom:16px"><table><thead><tr><th>Datei</th><th>Typ</th><th class="num">Fahrtzeit</th><th class="num">Fahrtkosten</th><th class="num">Krankheit</th></tr></thead><tbody>'+(fileRows||'<tr><td colspan="5" style="color:var(--muted)">Keine Dateien.</td></tr>')+'</tbody></table></div>';
+
+  if(det.length){
+    const sumFz=det.reduce((s,x)=>s+(x.fahrtzeit||0),0);
+    const sumRk=det.reduce((s,x)=>s+(x.reisekosten||0),0);
+    const sumKr=det.reduce((s,x)=>s+(x.krank||0),0);
+    html+='<div class="card-title">Aufschlüsselung pro Mitarbeiter (aus Zeiterfassung)</div>';
+    html+='<div class="tbl-wrap"><table><thead><tr><th>Mitarbeiter</th><th class="num">Fahrtzeit</th><th class="num">Reisekosten</th><th class="num">Krankheit</th></tr></thead><tbody>';
+    html+=det.map(d=>`<tr><td>${esc(d.name)}</td><td class="num">${d.fahrtzeit?fmtN(d.fahrtzeit)+' h':'–'}</td><td class="num">${d.reisekosten?fmt(d.reisekosten):'–'}</td><td class="num">${d.krank?fmtN(d.krank)+' h':'–'}</td></tr>`).join('');
+    html+=`<tr style="font-weight:700;border-top:2px solid var(--line)"><td>Summe</td><td class="num">${fmtN(sumFz)} h</td><td class="num">${fmt(sumRk)}</td><td class="num">${fmtN(sumKr)} h</td></tr>`;
+    html+='</tbody></table></div>';
+  } else {
+    html+='<div style="font-size:12px;color:var(--muted)">Für eine Aufschlüsselung pro Mitarbeiter bitte die <strong>Zeiterfassung (Alle)</strong> aus edtime hochladen. Be-/Abzüge und Abwesenheiten liefern nur Summen.</div>';
+  }
+  wrap.innerHTML=html;
+}
+
+async function handleEdtimeFiles(files){
+  files=[...(files||[])];
+  if(!files.length)return;
+  const queue=[];
+  for(const f of files){
+    try{ queue.push({f, txt: await readAnyFileText(f)}); }
+    catch(err){ queue.push({f, err}); }
+  }
+  await handleEdtimeParsed(queue);
+}
+
+/* Nimmt bereits gelesene {f, txt} Paare (für Smart-Drop, vermeidet Doppel-Parsing) */
+async function handleEdtimeParsed(queue){
+  if(!queue.length)return;
+  const files=queue.map(q=>q.f);
+  const el=document.getElementById('edtimeFileName');
+  if(el)el.innerHTML=files.map(f=>esc(f.name)).join('<br>');
+  const zone=document.getElementById('zoneEdtime'); if(zone){zone.style.borderColor='#6b21a8'; zone.style.borderStyle='solid';}
+  setStatus('Analysiere Edtime: '+files.length+' Datei(en) …');
+  const total={fahrtzeit:0,fahrtkosten:0,krank:0,kilometer:0,files:[],details:[],raw:''};
+  for(const q of queue){
+    const f=q.f;
+    try{
+      if(q.err)throw q.err;
+      const txt=q.txt;
+      const data=parseEdtimeText(txt);
+      total.fahrtzeit+=data.fahrtzeit||0;
+      total.fahrtkosten+=data.fahrtkosten||0;
+      total.krank+=data.krank||0;
+      total.kilometer+=data.kilometer||0;
+      if(data.details&&data.details.length)total.details=total.details.concat(data.details);
+      total.files.push({name:f.name,typ:data.typ,fahrtzeit:data.fahrtzeit||0,fahrtkosten:data.fahrtkosten||0,krank:data.krank||0,kilometer:data.kilometer||0});
+      total.raw += '\n\n═══ EDTIME: ' + f.name + ' ('+(data.typ||'?')+') ═══\n\n' + txt;
+    }catch(err){
+      total.files.push({name:f.name,error:err.message});
+      console.error(err);
+    }
+  }
+  S.rawText=(S.rawText||'')+total.raw;
+  const raw=document.getElementById('rawTA'); if(raw)raw.value=S.rawText;
+  applyEdtimeToDashboard(total,files.map(f=>f.name).join(', '));
+  setStatus('✓ Edtime analysiert: '+files.length+' Datei(en) · Fahrtzeit '+fmtN(total.fahrtzeit)+' Std. · Fahrtkosten '+fmt(total.fahrtkosten)+' · Krankheit '+fmtN(total.krank)+' Std.');
+  switchTab('cfo');
+}
+
+async function handleEdtimeFile(f){
+  await handleEdtimeFiles([f]);
+}
+
+async function loadAsPdf(e){
+  const f=e.target.files[0];if(!f)return;
+  setStatus('Analysiere AS Bremen: '+f.name+' … ('+Math.round(f.size/1024)+' KB)');
+  try{
+    const txt=await readAnyFileText(f);
+    processAs(txt,f.name);
+  }catch(err){setStatus('Fehler: '+err.message); console.error(err);}
+}
+
+function processAs(txt,fname){
+  document.getElementById('asPdfFileName').textContent=fname;
+  document.getElementById('zoneAsPdf').style.borderColor='#185fa5';
+  document.getElementById('zoneAsPdf').style.borderStyle='solid';
+  if(!S.rawText) S.rawText=txt;
+  else S.rawText+='\n\n═══ AS BREMEN ═══\n\n'+txt;
+  document.getElementById('rawTA').value=S.rawText;
+  parseAsText(txt);
+}
+
+function parseHeimbasStunden(txt){
+  const lines=txt.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  
+  // Multiple patterns for hours
+  const stundenPatterns=[
+    /(\d+[.,]\d+)\s*(?:Std\.?|h(?:rs?)?|Stunden)/i,
+    /(?:Std\.?|Stunden|hours?)\s*[:=]?\s*(\d+[.,]\d+)/i,
+    /(\d{1,3}[.,]\d{1,2})(?:\s{2,}|\|)/,  // number followed by gap (table column)
+  ];
+  
+  const nameRx=/^([A-ZÄÖÜ][a-zäöüß]+(?:[-\s][A-Za-zÄÖÜäöüß]+){1,4})$/;
+  const nameRxLoose=/([A-ZÄÖÜ][a-zäöüß]{2,}(?:[-\s][A-Za-zÄÖÜäöüß]{2,}){1,3})/;
+  const dateRx=/\d{2}\.\d{2}\.\d{4}/;
+  const skipRx=/^(---|seite|gesamt|summe|datum|name|mitarbeiter|zeitraum|stunden|übersicht)/i;
+  
+  const ma=[];
+  let totalBooked=0,totalDone=0;
+  
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i];
+    if(skipRx.test(line))continue;
+    
+    // Try to find hours in this line
+    let stunden=null;
+    for(const rx of stundenPatterns){
+      rx.lastIndex=0;
+      const sm=line.match(rx);
+      if(sm){
+        const val=parseFloat((sm[1]||sm[2]||'').replace(',','.'));
+        if(isFinite(val)&&val>0&&val<500){stunden=val;break;}
+      }
+    }
+    if(stunden===null)continue;
+    
+    // Find name: on same line or look backwards
+    let name='Unbekannt';
+    
+    // Same line: try extracting name from cell or prefix
+    if(line.includes('|')){
+      const cells=line.split(/\s*\|\s*/);
+      for(const cell of cells){
+        const c=cell.trim();
+        if(c && nameRxLoose.test(c) && !/\d{2}[.,]\d/.test(c)){
+          name=c.match(nameRxLoose)[1];break;
+        }
+      }
+    }
+    if(name==='Unbekannt'){
+      const m=line.match(nameRxLoose);
+      if(m && m[1].length>4)name=m[1];
+    }
+    if(name==='Unbekannt'){
+      for(let j=i-1;j>=Math.max(0,i-4);j--){
+        if(skipRx.test(lines[j]))continue;
+        if(nameRx.test(lines[j])){name=lines[j];break;}
+        const m2=lines[j].match(nameRxLoose);
+        if(m2 && m2[1].length>4 && !/\d+[.,]\d/.test(lines[j])){name=m2[1];break;}
+      }
+    }
+    
+    const date=(line.match(dateRx)||[''])[0];
+    const lower=line.toLowerCase();
+    
+    if(lower.includes('gebuch')||lower.includes('geplant')||lower.includes('soll')||lower.includes('termin')){
+      totalBooked+=stunden;ma.push({name,stunden,type:'gebucht',date});
+    }else if(lower.includes('erbracht')||lower.includes('ist')||lower.includes('tatsächl')||lower.includes('geleist')){
+      totalDone+=stunden;ma.push({name,stunden,type:'erbracht',date});
+    }else{
+      totalBooked+=stunden;ma.push({name,stunden,type:'gebucht',date});
+    }
+  }
+  
+  S.stundenData=ma;
+  if(totalBooked>0){
+    document.getElementById('hBooked').value=totalBooked.toFixed(0);
+    document.getElementById('hDone').value=totalDone>0?totalDone.toFixed(0):totalBooked.toFixed(0);
+    calcAusl();
+  }
+  renderMitarbeiter();
+  const msg=ma.length
+    ? 'Stunden/Mitarbeiter erkannt: '+ma.length+' Einträge · '+totalBooked.toFixed(0)+' Stunden gebucht'+(totalDone>0?' · '+totalDone.toFixed(0)+' erbracht':'')+'.'
+    : 'Keine Stundeneinträge erkannt. Prüfen Sie den Rohtext-Tab und passen Sie ggf. die Muster an.';
+  setStatus(msg);
+}
+
+function parseAsText(txt){
+  const lines=txt.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+
+  // ── AS-Bremen Offene Postenliste (Spaltenformat) ──────────────────────────
+  // pdf.js extrahiert spaltenweise:
+  //   Block 1: Rechnungsnr + Empfänger + Beh.Person + Datumsbereich
+  //   Block 2: Fakt.Datum + Zahlungsziel + Fakt.Betrag + Restbetrag + Rechnungsnr
+  // Muster: [Datum] [Datum] [Betrag] [Betrag] [1011 NNNNN]
+  // Beh.Person: "Nachname Vorname, VersNr,"
+  // Strategie: Beh.Person-Zeilen und Beträge-vor-Rechnungsnr per Index zusammenführen
+
+  const rechRx=/^1011\s+\d{5}$/;
+  const amtOnlyRx=/^(\d{1,3}(?:\.\d{3})*,\d{2})\s*€$/;
+  const personRx=/^(.+?),\s+[\w\-\/\.]+,\s*$/;
+  const skipRx=/^(zwischensumme|summe:|seite:|legende:|m-privat|a233\s+bezug|rechnungsnr|empfänger|beh\.person|fakt\.|offene posten|konto:)/i;
+
+  const hasOpos=lines.some(l=>rechRx.test(l));
+
+  if(hasOpos){
+    // Beträge: für jede Rechnungsnummer den Betrag VOR ihr (= Fakt.Betrag)
+    const rechPositions=lines.reduce((a,l,i)=>{if(rechRx.test(l))a.push(i);return a;},[]);
+    const amtBefore=rechPositions.map(ri=>{
+      for(let j=ri-1;j>=Math.max(0,ri-4);j--){
+        const m=amtOnlyRx.exec(lines[j]);
+        if(m)return parseEuro(m[1]);
+      }
+      return null;
+    });
+
+    // Beh.Person-Zeilen (in Dokumentreihenfolge, ohne Skip-Zeilen)
+    const persons=lines.filter(l=>!skipRx.test(l)&&personRx.test(l));
+
+    const count=Math.min(persons.length,amtBefore.length);
+    const data=[];
+    for(let k=0;k<count;k++){
+      const pm=personRx.exec(persons[k]);
+      if(!pm)continue;
+      const name=pm[1].trim();
+      const amt=amtBefore[k];
+      if(!amt||!Number.isFinite(amt))continue;
+      data.push({name,amt,status:'offen',due:'–'});
+    }
+
+    if(data.length>0){
+      S.asData=data;
+      renderAs();renderKpis();buildActions();
+      setStatus('AS-Bremen OPOS: '+data.length+' Positionen · Gesamt: '+fmt(data.reduce((s,x)=>s+x.amt,0)));
+      return;
+    }
+  }
+
+  // ── Generischer Fallback ──────────────────────────────────────────────────
+  const amtPatterns=[
+    /(-?\d{1,3}(?:\.\d{3})*,\d{2})\s*€/g,
+    /(-?\d+,\d{2})\s*€/g,
+  ];
+  const nameRxLoose=/([A-ZÄÖÜ][a-zäöüß]{2,}(?:[-\s][A-Za-zÄÖÜäöüß]{2,}){1,3})/;
+  const nameRxStrict=/^([A-ZÄÖÜ][a-zäöüß]+(?:[-\s][A-Za-zÄÖÜäöüß]+){1,4})$/;
+  const dateRx=/\d{2}\.\d{2}\.\d{4}/;
+  const skipRx2=/^(---|seite|gesamt|summe|datum|betrag|status|fällig|übersicht|kunde|nr\.?|pos\.?)/i;
+
+  function findAmts2(line){
+    const found=[];
+    for(const rx of amtPatterns){
+      rx.lastIndex=0;
+      for(const m of line.matchAll(rx)){
+        const amt=parseEuro(m[1]||m[0]);
+        if(Number.isFinite(amt)&&amt>0&&amt<100000){
+          if(!found.some(f=>Math.abs(f-amt)<0.01))found.push(amt);
+        }
+      }
+    }
+    return found;
+  }
+
+  const data=[];
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i];
+    if(skipRx2.test(line))continue;
+    const amts=findAmts2(line);
+    if(!amts.length)continue;
+    for(const amt of amts){
+      let name='Unbekannt';
+      const m=line.match(nameRxLoose);
+      if(m&&m[1].length>4&&!dateRx.test(m[1]))name=m[1];
+      if(name==='Unbekannt'){
+        for(let j=i-1;j>=Math.max(0,i-3);j--){
+          if(skipRx2.test(lines[j]))continue;
+          if(findAmts2(lines[j]).length)break;
+          if(nameRxStrict.test(lines[j])){name=lines[j];break;}
+        }
+      }
+      const due=(line.match(dateRx)||['–'])[0];
+      data.push({name,amt,status:'offen',due});
+    }
+  }
+  S.asData=data;
+  renderAs();renderKpis();buildActions();
+  setStatus(data.length?'AS-Bremen: '+data.length+' Positionen erkannt.':'Keine Positionen erkannt.');
+}
+
+/* ═══════════════════════════ RENDER FUNCTIONS ═══════════════════════════ */
+
+function render(){
+  renderKpis();renderSegBar();renderTable();buildActions();buildSummary();buildPrint();renderFinKpis();calcCFO();buildCockpit();
+}
+
+function renderKpis(){
+  const c=S.customers;
+  const tot=c.length;
+  const rev=c.reduce((s,x)=>s+x.amount,0);
+  const avg=tot?rev/tot:0;
+  const cA=c.filter(x=>x.segment==='A').length;
+  const cD=c.filter(x=>x.segment==='D').length;
+  setText('kTot',tot||'–');
+  setText('kRev',tot?fmt(rev):'–');
+  setText('kAvg',tot?fmt(avg):'–');
+  setText('kA',tot?cA:'–');
+  setText('kD',tot?cD:'–');
+  const opTotal=S.asData.filter(x=>!x.status.toLowerCase().includes('bezahlt')).reduce((s,x)=>s+x.amt,0);
+  setText('kOp',S.asData.length?fmt(opTotal):'–');
+}
+
+function renderFinKpis(){
+  setText('kFinUmsatz', S.fin.umsatz ? fmt(S.fin.umsatz) : '–');
+  setText('kFinPersonal', S.fin.personal ? fmt(S.fin.personal) : '–');
+  setText('kFinSV', S.fin.sv ? fmt(S.fin.sv) : '–');
+  setText('kFinLiqui', S.fin.liqui ? fmt(S.fin.liqui) : '–');
+  const openAnf = S.anfragen.filter(a=>a.status==='offen'||a.status==='in Bearbeitung').length;
+  setText('kFinAnfragen', S.anfragen.length ? openAnf : '–');
+}
+
+function renderSegBar(){
+  const c=S.customers;
+  const tot=c.length;if(!tot)return;
+  const counts={A:0,B:0,C:0,D:0};
+  const revs={A:0,B:0,C:0,D:0};
+  const rev=c.reduce((s,x)=>s+x.amount,0);
+  c.forEach(x=>{counts[x.segment]++;revs[x.segment]+=x.amount});
+  ['A','B','C','D'].forEach(s=>{
+    document.getElementById('sb-'+s).style.width=pct(counts[s],tot);
+    document.getElementById('lg'+s).textContent=counts[s];
+  });
+  document.getElementById('revMix').textContent=['A','B','C','D'].map(s=>`${s}: ${pct(revs[s],rev)}`).join('  ·  ');
+}
+
+function renderTable(){
+  const seg=document.getElementById('segFilter').value;
+  const q=(document.getElementById('searchFilter').value||'').toLowerCase();
+  const rows=S.customers.filter(x=>(!seg||x.segment===seg)&&(!q||x.customer.toLowerCase().includes(q)));
+  const body=document.getElementById('custBody');
+  if(!rows.length){body.innerHTML='<tr><td colspan="4" style="color:var(--muted)">Keine Treffer.</td></tr>';return}
+  body.innerHTML=rows.map(x=>`<tr><td>${esc(x.customer)}</td><td>${fmt(x.amount)}</td><td><span class="badge b-${x.segment}">${x.segment}</span></td><td style="font-family:DM Mono,monospace;font-size:11px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.source)}</td></tr>`).join('');
+}
+
+function renderAs(){
+  const d=S.asData;
+  const opAmt=d.filter(x=>!x.status.toLowerCase().includes('bezahlt')).reduce((s,x)=>s+x.amt,0);
+  const okAmt=d.filter(x=>x.status.toLowerCase().includes('bezahlt')).reduce((s,x)=>s+x.amt,0);
+  setText('asOpTotal',d.length?fmt(opAmt):'–');
+  setText('asOkTotal',d.length?fmt(okAmt):'–');
+  setText('asTot',d.length||'–');
+  document.getElementById('asInfo').textContent=d.length?`${d.length} Positionen geladen · Offen: ${fmt(opAmt)} · Bezahlt: ${fmt(okAmt)}`:'Noch kein Export geladen.';
+  const body=document.getElementById('asBody');
+  if(!d.length){body.innerHTML='<tr><td colspan="4" style="color:var(--muted)">Keine Daten.</td></tr>';return}
+  body.innerHTML=d.map(x=>{
+    const ok=x.status.toLowerCase().includes('bezahlt');
+    return`<tr><td>${esc(x.name)}</td><td>${fmt(x.amt)}</td><td><span class="badge ${ok?'b-ok':'b-open'}">${esc(x.status)}</span></td><td>${esc(x.due)}</td></tr>`;
+  }).join('');
+}
+
+function renderMitarbeiter(){
+  const el=document.getElementById('maBody');
+  if(!el)return;
+  const d=S.stundenData||[];
+  if(!d.length){el.innerHTML='<tr><td colspan="4" style="color:var(--muted)">Keine Mitarbeiterdaten geladen.</td></tr>';return}
+  el.innerHTML=d.map(x=>`<tr><td>${esc(x.name)}</td><td>${x.stunden.toFixed(1)} Std.</td><td><span class="badge ${x.type==='erbracht'?'b-ok':'b-B'}">${esc(x.type)}</span></td><td>${esc(x.date)||'–'}</td></tr>`).join('');
+}
+
+/* ═══════════════════════════ AUSLASTUNG ═══════════════════════════ */
+
+function calcAusl(){
+  const b=parseFloat(document.getElementById('hBooked').value)||0;
+  const d=parseFloat(document.getElementById('hDone').value)||0;
+  S.hBooked=b;S.hDone=d;
+  if(!b){
+    setText('auslPct','–');setText('auslPctOv','–');
+    document.getElementById('auslNote').textContent='Bitte Stunden eingeben.';
+    document.getElementById('auslNoteOv').textContent='Bitte Stunden eingeben.';
+    document.getElementById('auslFill').style.width='0%';
+    document.getElementById('auslFillOv').style.width='0%';
+    return;
+  }
+  const r=(d/b)*100;
+  const pctStr=r.toFixed(1)+'\u202f%';
+  setText('auslPct',pctStr);
+  setText('auslPctOv',pctStr);
+  const diff=d-b;
+  const note=`${d} von ${b} Stunden erbracht · Differenz: ${diff>=0?'+':''}${diff} Std.`;
+  document.getElementById('auslNote').textContent=note;
+  document.getElementById('auslNoteOv').textContent=note;
+  ['auslFill','auslFillOv'].forEach(id=>{
+    const fill=document.getElementById(id);
+    fill.style.width=Math.min(r,100)+'%';
+    fill.className='ausl-fill'+(r<85?' danger':r<95?' warn':'');
+  });
+  buildActions();buildSummary();
+  if(typeof buildCockpit==='function')buildCockpit();
+}
+
+/* ═══════════════════════════ FINANZEN ═══════════════════════════ */
+
+function calcFinanzen(){
+  const f = S.fin;
+  f.umsatz = parseNum('finUmsatz');
+  f.personal = parseNum('finPersonal');
+  f.sv = parseNum('finSV');
+  f.sonstige = parseNum('finSonstige');
+  f.liqui = parseNum('finLiqui');
+  f.monat = document.getElementById('finMonat').value || '';
+
+  const gesamtkosten = f.personal + f.sv + f.sonstige;
+  const ergebnis = f.umsatz - gesamtkosten;
+  const pkq = f.umsatz > 0 ? ((f.personal + f.sv) / f.umsatz * 100) : 0;
+
+  setText('finKUmsatz', f.umsatz ? fmt(f.umsatz) : '–');
+  setText('finKKosten', gesamtkosten ? fmt(gesamtkosten) : '–');
+  document.getElementById('finKKostenSub').textContent = gesamtkosten ? `Personal: ${fmt(f.personal)} + SV: ${fmt(f.sv)}` : '';
+
+  const erEl = document.getElementById('finKErgebnis');
+  if(f.umsatz || gesamtkosten){
+    erEl.textContent = fmt(ergebnis);
+    erEl.style.color = ergebnis >= 0 ? 'var(--green)' : 'var(--red)';
+    document.getElementById('finKErgebnisSub').textContent = ergebnis >= 0 ? 'Überschuss' : 'Defizit';
+  } else {
+    erEl.textContent = '–'; erEl.style.color = '';
+    document.getElementById('finKErgebnisSub').textContent = '';
+  }
+
+  setText('finKPKQ', f.umsatz ? pkq.toFixed(1) + '\u202f%' : '–');
+  const pkqEl = document.getElementById('finKPKQ').closest('.kpi');
+  if(f.umsatz){
+    pkqEl.className = 'kpi ' + (pkq > 75 ? 'kpi-red' : pkq > 70 ? 'kpi-amber' : 'kpi-green');
+  }
+
+  setText('finKLiqui', f.liqui ? fmt(f.liqui) : '–');
+
+  // Bar chart
+  const bars = [
+    { label:'Umsatz', val:f.umsatz, color:'var(--green)' },
+    { label:'Personal', val:f.personal, color:'var(--red)' },
+    { label:'SV-Beitrag', val:f.sv, color:'var(--amber)' },
+    { label:'Sonstige', val:f.sonstige, color:'var(--muted)' },
+    { label:'Ergebnis', val:ergebnis, color:ergebnis>=0?'var(--teal)':'var(--red)' },
+  ];
+  const maxVal = Math.max(...bars.map(b=>Math.abs(b.val)),1);
+  document.getElementById('finBarChart').innerHTML = bars.map(b=>{
+    const h = Math.max(Math.abs(b.val)/maxVal*100,2);
+    return `<div class="fin-bar-col"><div class="fin-bar-val" style="color:${b.color}">${fmt(b.val)}</div><div class="fin-bar-fill" style="height:${h}%;background:${b.color}"></div><div class="fin-bar-label">${b.label}</div></div>`;
+  }).join('');
+
+  // Breakdown
+  document.getElementById('finBreakdown').innerHTML = f.umsatz ? `
+    <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600">Kostenaufschlüsselung</div>
+    <div style="font-size:12px;line-height:2">
+      Personalkosten: <strong>${fmt(f.personal)}</strong> (${pct(f.personal,f.umsatz)})<br>
+      SV-Beitrag AG: <strong>${fmt(f.sv)}</strong> (${pct(f.sv,f.umsatz)})<br>
+      Sonstige: <strong>${fmt(f.sonstige)}</strong> (${pct(f.sonstige,f.umsatz)})<br>
+      <span style="border-top:1px solid var(--line);display:inline-block;padding-top:4px;margin-top:4px">
+        Gesamt: <strong>${fmt(gesamtkosten)}</strong> (${pct(gesamtkosten,f.umsatz)})
+      </span>
+    </div>` : '';
+
+  renderFinKpis();
+  if(document.getElementById('tab-cfo')) calcCFO();
+  if(typeof buildCockpit==='function') buildCockpit();
+}
+
+/* ═══════════════════════════ BWA ═══════════════════════════ */
+
+function calcBWA(){
+  const b = S.bwa;
+  b.material = parseNum('bwaMaterial');
+  b.raum = parseNum('bwaRaum');
+  b.vers = parseNum('bwaVers');
+  b.kfz = parseNum('bwaKfz');
+  b.afa = parseNum('bwaAfa');
+  b.sonstig = parseNum('bwaSonstig');
+
+  const umsatz = S.fin.umsatz;
+  if(!umsatz){
+    document.getElementById('bwaBody').innerHTML='<tr><td colspan="3" style="color:var(--muted)">Bitte zuerst den Umsatz oben eingeben.</td></tr>';
+    return;
+  }
+
+  const personalGesamt = S.fin.personal + S.fin.sv;
+  const sachkosten = b.material + b.raum + b.vers + b.kfz + b.afa + b.sonstig + S.fin.sonstige;
+  const gesamtaufwand = personalGesamt + sachkosten;
+  const betriebsergebnis = umsatz - gesamtaufwand;
+
+  const rows = [
+    ['Umsatzerlöse', umsatz, true],
+    ['./. Materialaufwand', -b.material],
+    ['= Rohertrag', umsatz - b.material, true],
+    ['./. Personalkosten (Brutto)', -S.fin.personal],
+    ['./. SV-Beitrag Arbeitgeber', -S.fin.sv],
+    ['= nach Personalkosten', umsatz - b.material - personalGesamt, true],
+    ['./. Raumkosten', -b.raum],
+    ['./. Versicherungen', -b.vers],
+    ['./. Kfz-Kosten', -b.kfz],
+    ['./. Abschreibungen', -b.afa],
+    ['./. Sonstiger Aufwand', -(b.sonstig + S.fin.sonstige)],
+    ['= Betriebsergebnis', betriebsergebnis, true],
+  ];
+
+  document.getElementById('bwaBody').innerHTML = rows.map(([label, val, bold])=>{
+    const isBold = bold ? 'font-weight:600' : '';
+    const isNeg = val < 0;
+    const pctVal = umsatz ? (Math.abs(val)/umsatz*100).toFixed(1)+'\u202f%' : '–';
+    const color = bold && val < 0 ? 'color:var(--red)' : bold && val > 0 ? 'color:var(--green)' : '';
+    return `<tr style="${isBold};${color}"><td>${esc(label)}</td><td class="num">${fmt(val)}</td><td class="num">${pctVal}</td></tr>`;
+  }).join('');
+}
+
+function copyBWA(){
+  const rows = document.getElementById('bwaTable').innerText;
+  navigator.clipboard.writeText(rows).then(()=>setStatus('BWA kopiert.')).catch(()=>{});
+}
+
+function exportFinCsv(){
+  const f = S.fin;
+  const b = S.bwa;
+  const rows = [
+    ['Position','Betrag'],
+    ['Umsatz',f.umsatz],['Personalkosten',f.personal],['SV-Beitrag AG',f.sv],
+    ['Sonstige Kosten',f.sonstige],['Liquidität',f.liqui],
+    ['Materialaufwand',b.material],['Raumkosten',b.raum],['Versicherungen',b.vers],
+    ['Kfz-Kosten',b.kfz],['Abschreibungen',b.afa],['Sonstiger Aufwand',b.sonstig]
+  ];
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\r\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='finanzen_'+todayISO()+'.csv';a.click();
+  setStatus('Finanzdaten als CSV exportiert.');
+}
+
+/* ═══════════════════════════ ANFRAGEN ═══════════════════════════ */
+
+function addAnfrage(){
+  const datum = document.getElementById('anfDatum').value || todayISO();
+  const name = document.getElementById('anfName').value.trim();
+  if(!name){setStatus('Bitte einen Namen eingeben.');return;}
+  S.anfragen.push({
+    datum,
+    name,
+    quelle: document.getElementById('anfQuelle').value,
+    status: document.getElementById('anfStatus').value,
+    notiz: document.getElementById('anfNotiz').value.trim(),
+    id: Date.now()
+  });
+  document.getElementById('anfName').value='';
+  document.getElementById('anfNotiz').value='';
+  renderAnfragen();
+  renderFinKpis();
+  setStatus('Anfrage für "'+name+'" hinzugefügt.');
+}
+
+function removeAnfrage(id){
+  S.anfragen = S.anfragen.filter(a=>a.id!==id);
+  renderAnfragen();
+  renderFinKpis();
+}
+
+function cycleAnfStatus(id){
+  const statuses = ['offen','in Bearbeitung','angenommen','abgelehnt','Warteliste'];
+  const a = S.anfragen.find(x=>x.id===id);
+  if(!a)return;
+  const idx = statuses.indexOf(a.status);
+  a.status = statuses[(idx+1)%statuses.length];
+  renderAnfragen();
+  renderFinKpis();
+}
+
+function renderAnfragen(){
+  const d = S.anfragen;
+  const offen = d.filter(a=>a.status==='offen'||a.status==='in Bearbeitung').length;
+  const angenommen = d.filter(a=>a.status==='angenommen').length;
+  const abgelehnt = d.filter(a=>a.status==='abgelehnt').length;
+  const total = d.length;
+
+  setText('anfOffen', total ? offen : '–');
+  setText('anfAngenommen', total ? angenommen : '–');
+  setText('anfAbgelehnt', total ? abgelehnt : '–');
+  setText('anfKonversion', total ? pct(angenommen, total) : '–');
+
+  const body = document.getElementById('anfBody');
+  if(!d.length){body.innerHTML='<tr><td colspan="6" style="color:var(--muted)">Noch keine Anfragen erfasst.</td></tr>';return;}
+
+  const statusBadge = s => {
+    const m = {offen:'b-open','in Bearbeitung':'b-pending',angenommen:'b-done',abgelehnt:'b-open',Warteliste:'b-info'};
+    return `<span class="badge ${m[s]||'b-info'}" style="cursor:pointer">${esc(s)}</span>`;
+  };
+
+  body.innerHTML = d.slice().reverse().map(a=>`<tr>
+    <td>${esc(a.datum)}</td>
+    <td>${esc(a.name)}</td>
+    <td>${esc(a.quelle)}</td>
+    <td onclick="cycleAnfStatus(${a.id})" style="cursor:pointer" title="Klicken zum Wechseln">${statusBadge(a.status)}</td>
+    <td style="font-size:12px;color:var(--muted)">${esc(a.notiz)}</td>
+    <td><button class="btn btn-sm" style="color:var(--red);border-color:var(--red)" onclick="removeAnfrage(${a.id})">×</button></td>
+  </tr>`).join('');
+}
+
+/* ═══════════════════════════ AS BREMEN KOMMUNIKATION ═══════════════════════════ */
+
+function addComm(){
+  const inhalt = document.getElementById('commInhalt').value.trim();
+  if(!inhalt){setStatus('Bitte Inhalt eingeben.');return;}
+  S.commLog.push({
+    datum: document.getElementById('commDatum').value || todayISO(),
+    kontakt: document.getElementById('commKontakt').value.trim() || '–',
+    kanal: document.getElementById('commKanal').value,
+    thema: document.getElementById('commThema').value,
+    status: document.getElementById('commStatus').value,
+    delegiert: document.getElementById('commDelegiert').value.trim(),
+    inhalt,
+    id: Date.now()
+  });
+  document.getElementById('commInhalt').value='';
+  document.getElementById('commKontakt').value='';
+  document.getElementById('commDelegiert').value='';
+  renderComm();
+  setStatus('Kommunikationseintrag gespeichert.');
+}
+
+function removeComm(id){
+  S.commLog = S.commLog.filter(c=>c.id!==id);
+  renderComm();
+}
+
+function cycleCommStatus(id){
+  const statuses = ['offen','delegiert','wartet auf Rückmeldung','erledigt'];
+  const c = S.commLog.find(x=>x.id===id);
+  if(!c)return;
+  const idx = statuses.indexOf(c.status);
+  c.status = statuses[(idx+1)%statuses.length];
+  renderComm();
+}
+
+function renderComm(){
+  const d = S.commLog;
+  setText('commTotal', d.length);
+  setText('commOffen', d.filter(c=>c.status==='offen'||c.status==='wartet auf Rückmeldung').length);
+  setText('commDelegiert2', d.filter(c=>c.status==='delegiert').length);
+  setText('commErledigt', d.filter(c=>c.status==='erledigt').length);
+
+  const el = document.getElementById('commList');
+  if(!d.length){el.innerHTML='<div style="font-size:13px;color:var(--muted);padding:12px">Noch keine Einträge.</div>';return;}
+
+  const statusBadge = s => {
+    const m = {offen:'b-open',delegiert:'b-delegated','wartet auf Rückmeldung':'b-pending',erledigt:'b-done'};
+    return `<span class="badge ${m[s]||'b-info'}">${esc(s)}</span>`;
+  };
+
+  el.innerHTML = d.slice().reverse().map(c=>`
+    <div class="comm-entry">
+      <div class="comm-meta">
+        <span>${esc(c.datum)}</span>
+        <span style="font-weight:500;color:var(--text)">${esc(c.kontakt)}</span>
+        <span>${esc(c.kanal)}</span>
+        <span class="badge b-info">${esc(c.thema)}</span>
+        <span onclick="cycleCommStatus(${c.id})" style="cursor:pointer" title="Klicken zum Wechseln">${statusBadge(c.status)}</span>
+        ${c.delegiert ? `<span style="color:var(--purple);font-weight:500">→ ${esc(c.delegiert)}</span>` : ''}
+        <button class="btn btn-sm" style="color:var(--red);border-color:var(--red);margin-left:auto;padding:2px 8px" onclick="removeComm(${c.id})">×</button>
+      </div>
+      <div class="comm-text">${esc(c.inhalt)}</div>
+    </div>`).join('');
+}
+
+function exportCommCsv(){
+  const rows = [['Datum','Kontakt','Kanal','Thema','Status','Delegiert an','Inhalt'],
+    ...S.commLog.map(c=>[c.datum,c.kontakt,c.kanal,c.thema,c.status,c.delegiert,c.inhalt])];
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\r\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='as_kommunikation_'+todayISO()+'.csv';a.click();
+  setStatus('Kommunikationsprotokoll als CSV exportiert.');
+}
+
+/* ═══════════════════════════ REGIONALE ENTGELTE ═══════════════════════════ */
+
+function calcEntgelte(){
+  const stundensatz = parseFloat((document.getElementById('entStundensatz').value||'0').replace(',','.')) || 0;
+  const stdWoche = parseFloat((document.getElementById('entStdWoche').value||'0').replace(',','.')) || 0;
+  const kunden = parseInt(document.getElementById('entKunden').value) || S.customers.length || 0;
+  const wochenMonat = parseFloat((document.getElementById('entWochenMonat').value||'4.33').replace(',','.')) || 4.33;
+  const wege = parseFloat((document.getElementById('entWege').value||'0').replace(',','.')) || 0;
+  const einsaetze = parseFloat((document.getElementById('entEinsaetze').value||'0').replace(',','.')) || 0;
+
+  // Update Kunden field from imported data if empty
+  if(!document.getElementById('entKunden').value && S.customers.length){
+    document.getElementById('entKunden').value = S.customers.length;
+  }
+
+  const stdMonatProKunde = stdWoche * wochenMonat;
+  const erloeseProKundeMonat = stdMonatProKunde * stundensatz;
+  const wegeProKundeMonat = wege * einsaetze * wochenMonat;
+  const totalProKundeMonat = erloeseProKundeMonat + wegeProKundeMonat;
+
+  const monat = totalProKundeMonat * kunden;
+  const jahr = monat * 12;
+
+  setText('entMonat', monat ? fmt(monat) : '–');
+  setText('entJahr', jahr ? fmt(jahr) : '–');
+  setText('entProKunde', totalProKundeMonat ? fmt(totalProKundeMonat) : '–');
+  setText('entWegeMonat', wegeProKundeMonat*kunden ? fmt(wegeProKundeMonat*kunden) : '–');
+
+  // Detail table
+  const detailRows = [
+    ['Stunden pro Kunde / Monat', fmtN(stdMonatProKunde)+' Std.', fmtN(stdMonatProKunde*12)+' Std.'],
+    ['Stundenerlöse pro Kunde', fmt(erloeseProKundeMonat), fmt(erloeseProKundeMonat*12)],
+    ['Wegepauschalen pro Kunde', fmt(wegeProKundeMonat), fmt(wegeProKundeMonat*12)],
+    ['Erlös pro Kunde gesamt', fmt(totalProKundeMonat), fmt(totalProKundeMonat*12)],
+    ['──────────────────','',''],
+    ['Erlöse alle Kunden ('+kunden+')', fmt(monat), fmt(jahr)],
+    ['davon Wegepauschalen', fmt(wegeProKundeMonat*kunden), fmt(wegeProKundeMonat*kunden*12)],
+    ['davon Stundenerlöse', fmt(erloeseProKundeMonat*kunden), fmt(erloeseProKundeMonat*kunden*12)],
+  ];
+
+  document.getElementById('entBody').innerHTML = detailRows.map(([label,m,j],i)=>{
+    if(label.startsWith('──')) return `<tr><td colspan="3" style="padding:2px;border-bottom:2px solid var(--line)"></td></tr>`;
+    const bold = i>=5 ? 'font-weight:600' : '';
+    return `<tr style="${bold}"><td>${esc(label)}</td><td class="num">${m}</td><td class="num">${j}</td></tr>`;
+  }).join('');
+
+  // Vergleichssätze
+  const vergleich = [
+    { art:'Alltagsbegleitung (§ 45a)', region: 33.50 },
+    { art:'Hauswirtschaftliche Versorgung', region: 32.00 },
+    { art:'Betreuung in Gruppen (pro Std.)', region: 28.00 },
+    { art:'Wegepauschale (pro Einsatz)', region: 5.00 },
+  ];
+  document.getElementById('entVergleichBody').innerHTML = vergleich.map(v=>{
+    const own = v.art.includes('Wege') ? wege : stundensatz;
+    const diff = own - v.region;
+    const diffColor = diff > 0 ? 'var(--green)' : diff < 0 ? 'var(--red)' : 'var(--muted)';
+    return `<tr><td>${esc(v.art)}</td><td class="num">${fmt(v.region)}</td><td class="num">${fmt(own)}</td><td class="num" style="color:${diffColor};font-weight:500">${diff>=0?'+':''}${fmtN(diff)} €</td></tr>`;
+  }).join('');
+}
+
+
+/* ═══════════════════════════ CFO ENGINE SGB XI ═══════════════════════════ */
+
+function cfoRead(){
+  return {
+    umsatz: parseNum('cfoUmsatz'),
+    klienten: parseNum('cfoKlienten'),
+    stunden: parseNum('cfoStunden'),
+    direkt: parseNum('cfoDirekt'),
+    innen: parseNum('cfoInnen'),
+    fahrzeug: parseNum('cfoFahrzeug'),
+    fahrtkosten: parseNum('cfoFahrtkosten'),
+    fahrtzeit: parseNum('cfoFahrtzeit'),
+    krank: parseNum('cfoKrank'),
+    gemein: parseNum('cfoGemein'),
+    stdMA: parseNum('cfoStdMA') || 120
+  };
+}
+
+function ratingBadge(label,color){return `<span class="badge b-${color==='green'?'ok':color==='red'?'open':color==='amber'?'partial':'info'}">${label}</span>`}
+function rateCFO(v,green,amberHigher){
+  if(amberHigher){ if(v<=green)return ['🟢 Stark','green']; if(v<=amberHigher)return ['🟡 Beobachten','amber']; return ['🔴 Kritisch','red']; }
+  if(v>=green)return ['🟢 Stark','green']; if(v>=amberHigher)return ['🟡 Beobachten','amber']; return ['🔴 Kritisch','red'];
+}
+function cfoSetKpi(id,val,color){const el=document.getElementById(id); if(!el)return; el.textContent=val; const k=el.closest('.kpi'); if(k&&color)k.className='kpi kpi-'+color;}
+
+function loadAprilCFO(){
+  const values={cfoUmsatz:'77.524',cfoKlienten:'105',cfoStunden:'1.253',cfoDirekt:'41.177',cfoInnen:'15.231',cfoFahrzeug:'1.741',cfoFahrtkosten:'0',cfoFahrtzeit:'0',cfoKrank:'0',cfoGemein:'19.374',cfoStdMA:'120'};
+  Object.entries(values).forEach(([id,v])=>{const el=document.getElementById(id); if(el)el.value=v;});
+  calcCFO();
+  setStatus('CFO Cockpit: April Werte geladen.');
+}
+
+function syncCFOFromDashboard(){
+  const rev=S.fin.umsatz || S.customers.reduce((s,x)=>s+x.amount,0);
+  const klienten=S.customers.length || parseNum('cfoKlienten');
+  const stunden=S.hDone || parseNum('cfoStunden');
+  if(rev)document.getElementById('cfoUmsatz').value=fmtN(rev).replace(',00','');
+  if(klienten)document.getElementById('cfoKlienten').value=String(Math.round(klienten));
+  if(stunden)document.getElementById('cfoStunden').value=fmtN(stunden).replace(',00','');
+  if(S.fin.personal || S.fin.sv)document.getElementById('cfoDirekt').value=fmtN(S.fin.personal+S.fin.sv).replace(',00','');
+  if(S.bwa.kfz)document.getElementById('cfoFahrzeug').value=fmtN(S.bwa.kfz).replace(',00','');
+  if(S.edtimeImport){
+    if(S.edtimeImport.fahrtkosten)document.getElementById('cfoFahrtkosten').value=fmtN(S.edtimeImport.fahrtkosten).replace(',00','');
+    if(S.edtimeImport.fahrtzeit)document.getElementById('cfoFahrtzeit').value=fmtN(S.edtimeImport.fahrtzeit).replace(',00','');
+    if(S.edtimeImport.krank)document.getElementById('cfoKrank').value=fmtN(S.edtimeImport.krank).replace(',00','');
+  }
+  const gemein=S.fin.sonstige+S.bwa.material+S.bwa.raum+S.bwa.vers+S.bwa.afa+S.bwa.sonstig;
+  if(gemein)document.getElementById('cfoGemein').value=fmtN(gemein).replace(',00','');
+  calcCFO();
+  setStatus('CFO Cockpit: Werte aus dem Dashboard übernommen.');
+}
+
+
+function renderCfoStandortbewertung(m){
+  const row=(name,value,target,rating,points)=>`<tr><td>${esc(name)}</td><td class="num">${esc(value)}</td><td>${esc(target)}</td><td>${ratingBadge(rating[0],rating[1])}</td><td class="num">${points}</td></tr>`;
+  const pkqPts=m.pkq<60?25:m.pkq<=70?15:5;
+  const verwPts=m.verwq<10?20:m.verwq<=15?12:4;
+  const umsatzPts=m.umsatzKlient>850?20:m.umsatzKlient>=700?12:4;
+  const dbPts=m.dbKlient>350?25:m.dbKlient>=250?15:5;
+  const ausPts=m.auslastung>90?10:m.auslastung>=80?6:2;
+  const body=document.getElementById('cfoRatingBody');
+  if(body){
+    body.innerHTML=[
+      row('Personalkostenquote',m.pkq.toFixed(1)+' %','< 60 % stark · 60–70 % beobachten · > 70 % kritisch',m.rPkq,pkqPts),
+      row('Verwaltungskostenquote',m.verwq.toFixed(1)+' %','< 10 % stark · 10–15 % beobachten · > 15 % kritisch',m.rVerw,verwPts),
+      row('Umsatz pro Klient',fmt(m.umsatzKlient),'> 850 € stark · 700–850 € beobachten · < 700 € kritisch',m.rUms,umsatzPts),
+      row('Deckungsbeitrag pro Klient',fmt(m.dbKlient),'> 350 € stark · 250–350 € beobachten · < 250 € kritisch',m.rDb,dbPts),
+      row('Auslastung',m.auslastung?m.auslastung.toFixed(1)+' %':'keine Stundenbasis','> 90 % stark · 80–90 % beobachten · < 80 % kritisch',m.rAus,ausPts),
+      `<tr style="font-weight:700"><td>Gesamt Score</td><td class="num">${m.score}/100</td><td>${esc(m.scoreText)}</td><td>${ratingBadge(m.score>=75?'🟢 '+m.scoreText:m.score>=60?'🟡 '+m.scoreText:'🔴 '+m.scoreText,m.score>=75?'green':m.score>=60?'amber':'red')}</td><td class="num">${m.score}</td></tr>`
+    ].join('');
+  }
+}
+
+function calcCFO(){
+  const x=cfoRead();
+  if(!x.umsatz || !x.klienten || !x.direkt){
+    ['cfoDbKlient','cfoDbStunde','cfoBreakKlienten','cfoK10','cfoPkq','cfoScore'].forEach(id=>setText(id,'–'));
+    document.getElementById('cfoDbBody').innerHTML='<tr><td colspan="4" style="color:var(--muted)">Bitte mindestens Umsatz, Klienten und direkte Betreuungskosten eingeben.</td></tr>';
+    const rb=document.getElementById('cfoRatingBody'); if(rb)rb.innerHTML='<tr><td colspan="5" style="color:var(--muted)">Bitte CFO Werte oder BWA laden.</td></tr>';
+    const sb=document.getElementById('cfoScaleBody'); if(sb)sb.innerHTML='<tr><td colspan="2" style="color:var(--muted)">Bitte CFO-Werte oder BWA laden.</td></tr>';
+    const sa=document.getElementById('cfoScaleAdvice'); if(sa)sa.textContent='Noch keine Skalierungsempfehlung.';
+    const gb=document.getElementById('cfoGrowthBody'); if(gb)gb.innerHTML='<tr><td colspan="8" style="color:var(--muted)">Noch keine Berechnung.</td></tr>';
+    return;
+  }
+  const db1=x.umsatz-x.direkt;
+  const effektiveFahrtkosten=x.fahrzeug+x.fahrtkosten;
+  const db2=db1-effektiveFahrtkosten;
+  const db3=db2-x.innen;
+  const ergebnis=db3-x.gemein;
+  const dbKlient=db1/x.klienten;
+  const dbStunde=x.stunden?db1/x.stunden:0;
+  const umsatzKlient=x.umsatz/x.klienten;
+  const umsatzStunde=x.stunden?x.umsatz/x.stunden:0;
+  const fix=x.innen+effektiveFahrtkosten+x.gemein;
+  const breakKlienten=dbKlient>0?Math.ceil(fix/dbKlient):0;
+  const klienten10=dbKlient>0?Math.ceil((fix+10000)/dbKlient):0;
+  const breakUmsatz=breakKlienten*umsatzKlient;
+  const pkq=(x.direkt+x.innen)/x.umsatz*100;
+  const verwq=(x.innen+x.gemein)/x.umsatz*100;
+  const gesamtZeit=x.stunden+x.fahrtzeit+x.krank;
+  const fahrtzeitquote=gesamtZeit?x.fahrtzeit/gesamtZeit*100:0;
+  const krankheitsquote=gesamtZeit?x.krank/gesamtZeit*100:0;
+  const produktiveQuote=gesamtZeit?x.stunden/gesamtZeit*100:0;
+  const auslastung=x.stunden&&x.stdMA?Math.min(100,(x.stunden/(Math.ceil((x.stunden+x.fahrtzeit)/x.stdMA)*x.stdMA))*100):0;
+  const maNeed=x.stunden&&x.stdMA?(x.stunden+x.fahrtzeit)/x.stdMA:0;
+
+  const rDb=rateCFO(dbKlient,350,250);
+  const rPkq=rateCFO(pkq,60,70,true);
+  const rVerw=rateCFO(verwq,10,15,true);
+  const rUms=rateCFO(umsatzKlient,850,700);
+  const rAus=rateCFO(auslastung,90,80);
+  let score=0;
+  score += pkq<60?25:pkq<=70?15:5;
+  score += verwq<10?20:verwq<=15?12:4;
+  score += umsatzKlient>850?20:umsatzKlient>=700?12:4;
+  score += dbKlient>350?25:dbKlient>=250?15:5;
+  score += auslastung>90?10:auslastung>=80?6:2;
+  const scoreText=score>=90?'Elite Standort':score>=75?'Stark':score>=60?'Solide':score>=40?'Sanierungsbedarf':'Kritisch';
+
+  renderCfoStandortbewertung({pkq,verwq,umsatzKlient,dbKlient,auslastung,score,scoreText,rPkq,rVerw,rUms,rDb,rAus});
+
+  cfoSetKpi('cfoDbKlient',fmt(dbKlient),rDb[1]);
+  cfoSetKpi('cfoDbStunde',x.stunden?fmt(dbStunde):'–',dbStunde>=25?'green':dbStunde>=18?'amber':'red');
+  cfoSetKpi('cfoBreakKlienten',String(breakKlienten),breakKlienten<=x.klienten?'green':'red');
+  cfoSetKpi('cfoK10',String(klienten10),klienten10<=x.klienten?'green':'amber');
+  cfoSetKpi('cfoPkq',pkq.toFixed(1)+' %',rPkq[1]);
+  cfoSetKpi('cfoScore',String(score),score>=75?'green':score>=60?'amber':'red');
+  setText('cfoScoreSub',scoreText);
+  setText('cfoDbKlientSub',rDb[0]);
+
+  const dbRows=[
+    ['Umsatz',x.umsatz,100,['🟢 Basis','green']],
+    ['DB1 nach direkten Betreuungskosten',db1,db1/x.umsatz*100,rDb],
+    ['DB2 nach Fahrzeug und Fahrtkosten',db2,db2/x.umsatz*100,rateCFO(db2/x.umsatz*100,24,18)],
+    ['DB3 nach Innendienst',db3,db3/x.umsatz*100,rateCFO(db3/x.umsatz*100,12,8)],
+    ['Betriebsergebnis nach Gemeinkosten',ergebnis,ergebnis/x.umsatz*100,ergebnis>=10000?['🟢 Stark','green']:ergebnis>=0?['🟡 Beobachten','amber']:['🔴 Kritisch','red']]
+  ];
+  document.getElementById('cfoDbBody').innerHTML=dbRows.map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${fmt(r[1])}</td><td class="num">${r[2].toFixed(1)} %</td><td>${ratingBadge(r[3][0],r[3][1])}</td></tr>`).join('');
+  renderCfoEdtime({x,effektiveFahrtkosten,fahrtzeitquote,krankheitsquote,produktiveQuote,gesamtZeit,db1,db2,ergebnis});
+
+  const goals=[0,5000,10000,15000,20000,50000];
+  document.getElementById('cfoBreakBody').innerHTML=goals.map(g=>{
+    const k=dbKlient>0?Math.ceil((fix+g)/dbKlient):0;
+    return `<tr><td>${fmt(g)}</td><td class="num">${k}</td><td class="num">${fmt(k*umsatzKlient)}</td></tr>`;
+  }).join('');
+
+  const growth=[5,10,20,50];
+  const stundenJeKlient = x.klienten ? x.stunden/x.klienten : 0;
+  const stdMA = x.stdMA || 120; // produktive Monatsstunden je MA
+  document.getElementById('cfoGrowthBody').innerHTML=growth.map(g=>{
+    const addU=g*umsatzKlient, addDb=g*dbKlient, newGew=ergebnis+addDb;
+    const addMonatsStd = stundenJeKlient*g;
+    const addWochenStd = addMonatsStd/4.33;
+    const addFte = stdMA ? addMonatsStd/stdMA : 0;
+    return `<tr><td>+${g} Klienten</td><td class="num">${fmt(addU)}</td><td class="num">${fmt(addDb)}</td><td class="num">${fmt(newGew)}</td><td class="num">${Math.round(addWochenStd)} h</td><td class="num">${Math.round(addMonatsStd)} h</td><td class="num">${fmtN(addFte)}</td><td>${personalEmpfehlung(addWochenStd)}</td></tr>`;
+  }).join('');
+
+  renderSkalierung({x,stundenJeKlient,stdMA,umsatzKlient,dbKlient,ergebnis,maNeed,auslastung});
+
+  buildCFOInsights({x,db1,db2,db3,ergebnis,dbKlient,dbStunde,umsatzKlient,umsatzStunde,fix,breakKlienten,klienten10,breakUmsatz,pkq,verwq,auslastung,maNeed,score,scoreText,fahrtzeitquote,krankheitsquote,produktiveQuote,effektiveFahrtkosten});
+}
+
+/* Personalempfehlung auf Basis zusätzlicher Wochenstunden */
+function personalEmpfehlung(wochenStd){
+  if(wochenStd<=0) return '–';
+  if(wochenStd<=12) return 'Minijob';
+  if(wochenStd<=25) return '1 Teilzeitkraft';
+  if(wochenStd<=38) return '1 Vollzeitkraft';
+  const vollzeit=Math.floor(wochenStd/38);
+  const rest=wochenStd-vollzeit*38;
+  if(rest<=12) return vollzeit+' Vollzeitkräfte'+(rest>2?' + Minijob':'');
+  if(rest<=25) return vollzeit+' Vollzeit + 1 Teilzeit';
+  return (vollzeit+1)+' Betreuungskräfte';
+}
+
+/* Skalierungsplanung: Kapazität, freie Stunden, nächste Einstellung */
+function renderSkalierung(m){
+  const body=document.getElementById('cfoScaleBody');
+  const advice=document.getElementById('cfoScaleAdvice');
+  if(!body||!advice)return;
+  const x=m.x;
+  if(!x.stunden||!x.klienten){
+    body.innerHTML='<tr><td colspan="2" style="color:var(--muted)">Bitte Betreuungsstunden und Klientenzahl eingeben.</td></tr>';
+    advice.textContent='Noch keine Skalierungsempfehlung.';
+    return;
+  }
+  // aktueller Personalbestand (geschätzt aus benötigten MA für aktuelle Stunden)
+  const stdMA=m.stdMA;
+  const benoetigtMA=Math.ceil((x.stunden+x.fahrtzeit)/stdMA);
+  const kapazitaetStd=benoetigtMA*stdMA;            // verfügbare produktive Monatsstunden
+  const freieStd=Math.max(0,kapazitaetStd-(x.stunden+x.fahrtzeit));
+  const freieKlienten=m.stundenJeKlient?Math.floor(freieStd/m.stundenJeKlient):0;
+  const wachstumOhneNeu=freieKlienten;              // wie viele Klienten ohne neue Einstellung
+  const stundenJeKlientW=m.stundenJeKlient/4.33;
+
+  const rows=[
+    ['Aktuelle Betreuungsstunden (Monat)', Math.round(x.stunden)+' h'],
+    ['Stunden je Klient (Monat)', fmtN(m.stundenJeKlient)+' h'],
+    ['Geschätzter Personalbestand', benoetigtMA+' FTE'],
+    ['Freie Kapazität', Math.round(freieStd)+' h'],
+    ['Wachstum ohne Neueinstellung', 'bis +'+wachstumOhneNeu+' Klienten'],
+  ];
+  body.innerHTML=rows.map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${esc(r[1])}</td></tr>`).join('');
+
+  // Empfehlungstext
+  let txt='Skalierungsempfehlung\n'+'─'.repeat(38)+'\n';
+  if(freieKlienten>=3){
+    txt+=`Aktuell sind rund ${Math.round(freieStd)} Stunden freie Kapazität vorhanden. Es können bis zu ${wachstumOhneNeu} zusätzliche Klienten aufgenommen werden, bevor neues Personal nötig wird.\n\n`;
+    txt+=`Zeitpunkt der nächsten Einstellung: erst wenn rund ${wachstumOhneNeu} neue Klienten gewonnen sind oder die Auslastung ${m.auslastung.toFixed(0)} % deutlich übersteigt.`;
+  } else if(freieKlienten>0){
+    txt+=`Die Kapazität ist fast ausgeschöpft (nur noch Platz für ca. ${freieKlienten} Klienten). Eine Einstellung sollte vorbereitet werden.\n\n`;
+    txt+=`Empfohlene Wochenstunden der nächsten Betreuungskraft: ${Math.round(Math.max(20,stundenJeKlientW*5))} h (Richtwert für +5 Klienten).`;
+  } else {
+    txt+=`Keine freie Kapazität mehr – die Auslastung liegt bei ${m.auslastung.toFixed(0)} %. Vor jeder weiteren Klientenaufnahme ist eine Einstellung erforderlich.\n\n`;
+    txt+=`Empfohlene Wochenstunden der nächsten Betreuungskraft: mindestens ${Math.round(Math.max(25,stundenJeKlientW*5))} h.`;
+  }
+  advice.textContent=txt;
+}
+
+
+function renderCfoEdtime(m){
+  const body=document.getElementById('cfoEdtimeBody');
+  const impact=document.getElementById('cfoEdtimeImpact');
+  if(!body||!impact)return;
+  const rFahrt=m.fahrtzeitquote<=15?['🟢 Stark','green']:m.fahrtzeitquote<=22?['🟡 Beobachten','amber']:['🔴 Kritisch','red'];
+  const rKrank=m.krankheitsquote<=5?['🟢 Stark','green']:m.krankheitsquote<=8?['🟡 Beobachten','amber']:['🔴 Kritisch','red'];
+  const rProd=m.produktiveQuote>=80?['🟢 Stark','green']:m.produktiveQuote>=70?['🟡 Beobachten','amber']:['🔴 Kritisch','red'];
+  const rows=[
+    ['Fahrtzeiten',fmtN(m.x.fahrtzeit)+' Std.',rFahrt],
+    ['Fahrtzeitquote',m.fahrtzeitquote.toFixed(1)+' %',rFahrt],
+    ['Fahrtkosten Edtime',fmt(m.x.fahrtkosten),m.x.fahrtkosten?['🟡 Kostenblock','amber']:['🟢 Keine Zusatzkosten','green']],
+    ['Krankheitsstunden',fmtN(m.x.krank)+' Std.',rKrank],
+    ['Krankheitsquote',m.krankheitsquote.toFixed(1)+' %',rKrank],
+    ['Produktive Zeitquote',m.produktiveQuote.toFixed(1)+' %',rProd]
+  ];
+  body.innerHTML=rows.map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${esc(r[1])}</td><td>${ratingBadge(r[2][0],r[2][1])}</td></tr>`).join('');
+  const kostenJeFahrtStd=m.x.fahrtzeit&&m.x.direkt?m.x.direkt/(m.x.stunden||1)*m.x.fahrtzeit:0;
+  impact.textContent='Operative CFO Interpretation\n'+
+    'Fahrtzeiten binden '+fmtN(m.x.fahrtzeit)+' Std. ohne direkte Leistungsabrechnung.\n'+
+    'Fahrtkosten erhöhen den variablen Kostenblock um '+fmt(m.x.fahrtkosten)+'.\n'+
+    'Krankheit bindet rechnerisch '+fmtN(m.x.krank)+' Std. Kapazität.\n'+
+    'Produktive Zeitquote: '+m.produktiveQuote.toFixed(1)+' %.\n\n'+
+    'Geschätzter Kostenhebel Fahrtzeit: '+fmt(kostenJeFahrtStd)+' pro Monat, wenn Fahrtzeit wie Betreuungszeit bezahlt wird.\n'+
+    'DB2 nach Fahrzeug und Fahrtkosten: '+fmt(m.db2)+'.';
+}
+
+function buildCFOInsights(m){
+  const items=[];
+  const add=(color,title,problem,impact,potential,measure,prio)=>items.push({color,title,body:`Problem: ${problem}\n\nAuswirkung: ${impact}\n\nGewinnpotenzial: ${potential}\n\nMaßnahme: ${measure}\n\nPriorität: ${prio}`});
+  const fehl10=Math.max(0,m.klienten10-m.x.klienten);
+  if(m.pkq>70)add('red','Personalkostenquote senken','Personalkostenquote liegt bei '+m.pkq.toFixed(1)+' %.','Jeder Prozentpunkt über Ziel bindet '+fmt(m.x.umsatz*0.01)+' Monatsgewinn.','Bis zu '+fmt(Math.max(0,(m.pkq-65)/100*m.x.umsatz))+' pro Monat.','Tourenplanung, Stundenmix und direkte Betreuungskosten je Stunde prüfen.','Sofort');
+  if(m.verwq>15)add('red','Overhead reduzieren','Verwaltungs und Gemeinkostenquote liegt bei '+m.verwq.toFixed(1)+' %.','Der Standort skaliert zu langsam, weil Fixkosten den DB auffressen.','Bis zu '+fmt(Math.max(0,(m.verwq-12)/100*m.x.umsatz))+' pro Monat.','Innendienstprozesse standardisieren und nicht wertschöpfende Kosten stoppen.','30 Tage');
+  if(m.dbKlient<350)add('amber','Klientenwert erhöhen','DB je Klient liegt bei '+fmt(m.dbKlient)+'.','Neue Klienten bringen zu wenig Ergebnisbeitrag, wenn der Leistungsumfang niedrig bleibt.','Bei +100 € DB je Klient entstehen '+fmt(m.x.klienten*100)+' zusätzlicher Monats DB.','Leistungsverdichtung, Beratungsgespräche und höhere Stundenpakete priorisieren.','30 Tage');
+  if(m.fahrtzeitquote>22)add('red','Fahrtzeiten senken','Fahrtzeitquote liegt bei '+m.fahrtzeitquote.toFixed(1)+' %.','Unproduktive Zeit verdrängt abrechenbare Betreuungsstunden.','Bei 10 % weniger Fahrtzeit entstehen rechnerisch '+fmt((m.x.direkt/(m.x.stunden||1))*(m.x.fahrtzeit*0.10))+' Entlastung pro Monat.','Touren verdichten, regionale Cluster planen und Lücken zwischen Einsätzen minimieren.','Sofort');
+  if(m.krankheitsquote>8)add('red','Krankheitsquote kontrollieren','Krankheitsquote liegt bei '+m.krankheitsquote.toFixed(1)+' %.','Ausfälle erzeugen Ersatzplanung, Leerlauf und Qualitätsrisiko.','Jede vermiedene Krankheitsstunde erhöht verfügbare Kapazität für abrechenbare Leistung.','Ausfallmuster prüfen, Vertretungspool aufbauen und Dienstplanung stabilisieren.','30 Tage');
+  if(fehl10>0)add('blue','Wachstum auf 10 T€ Gewinn','Bis 10.000 € Monatsgewinn fehlen rechnerisch '+fehl10+' Klienten.','Der Standort liegt noch unter einer attraktiven Käufer und Investorenschwelle.','10.000 € Monatsgewinn entsprechen 120.000 € Jahresgewinn.','Vertrieb auf '+m.klienten10+' aktive Klienten ausrichten.','90 Tage');
+  if(m.ergebnis>=0)add('green','Standort skalieren','Der Standort ist über Break even und erwirtschaftet '+fmt(m.ergebnis)+' Ergebnis.','Zusätzliche Klienten erhöhen den Gewinn über den Grenz DB.','+10 Klienten bringen ca. '+fmt(m.dbKlient*10)+' zusätzlichen Monats DB.','Kapazität sichern und profitable Neuaufnahmen priorisieren.','Sofort');
+  if(!items.length)add('teal','CFO Struktur stabil','Keine akute rote Kennzahl erkannt.','Der Standort kann kontrolliert wachsen.','Wachstum entsprechend DB je Klient.','Monatlich Score und Break even prüfen.','30 Tage');
+  const icons={red:'!',amber:'!',green:'✓',blue:'↗',teal:'i'};
+  document.getElementById('cfoInsights').innerHTML=items.slice(0,5).map(it=>`<div class="action-card ac-${it.color}"><div class="ac-head"><div class="ac-icon icon-${it.color}" style="color:#fff;font-weight:700">${icons[it.color]}</div><div class="ac-title t-${it.color}">${esc(it.title)}</div></div><div class="ac-body" style="white-space:pre-line">${esc(it.body)}</div></div>`).join('');
+  document.getElementById('cfoReport').textContent=buildCFOReport(m,items);
+}
+
+function buildCFOReport(m,items){
+  const fehl10=Math.max(0,m.klienten10-m.x.klienten);
+  const uwAkt=Math.max(0,m.ergebnis*12*3);
+  const uw10=10000*12*4;
+  const uw20=20000*12*4.5;
+  return `CFO Management Abschluss\n${'─'.repeat(44)}\nProfitabilität: ${m.ergebnis>=0?'positiv, aber eng':'negativ und sanierungsbedürftig'} mit ${fmt(m.ergebnis)} Monatsergebnis.\n\nWo Geld verdient wird: Jeder aktive Klient erzeugt im Schnitt ${fmt(m.dbKlient)} DB1. Jede Betreuungsstunde erzeugt ${m.x.stunden?fmt(m.dbStunde):'keine Stundenbasis'} DB1.\n\nWo Geld verloren wird: Fixkostenblock aus Innendienst, Fahrzeug, Fahrtkosten und Gemeinkosten beträgt ${fmt(m.fix)}. Personalkostenquote liegt bei ${m.pkq.toFixed(1)} %. Verwaltung und Gemeinkosten liegen bei ${m.verwq.toFixed(1)} %. Fahrtzeitquote liegt bei ${m.fahrtzeitquote.toFixed(1)} %. Krankheitsquote liegt bei ${m.krankheitsquote.toFixed(1)} %.\n\nRealer Deckungsbeitrag: ${fmt(m.db1)} DB1 gesamt, ${fmt(m.dbKlient)} je Klient, ${m.x.stunden?fmt(m.dbStunde):'keine Stundenbasis'} je Stunde.\n\nBreak even: ${m.breakKlienten} Klienten bzw. ${fmt(m.breakUmsatz)} Monatsumsatz.\n\nBis 10.000 € Monatsgewinn fehlen: ${fehl10} Klienten. Zielgröße: ${m.klienten10} aktive Klienten.\n\nNächster realistischer Monatsumsatz: Bei +10 Klienten ca. ${fmt(m.x.umsatz + 10*m.umsatzKlient)}.\n\nUnternehmenswert grob: aktuell ca. ${fmt(uwAkt)} bei 3,0x Jahresgewinn. Bei 10.000 € Monatsgewinn ca. ${fmt(uw10)}. Bei 20.000 € Monatsgewinn ca. ${fmt(uw20)}.\n\nStandort Score: ${m.score}/100 · ${m.scoreText}.\n\nTop Maßnahmen:\n${items.slice(0,3).map((it,i)=>`${i+1}. ${it.title}`).join('\n')}`;
+}
+
+function copyCFOReport(){
+  const t=document.getElementById('cfoReport').textContent||'';
+  navigator.clipboard.writeText(t).then(()=>setStatus('CFO Report kopiert.'));
+}
+
+/* ═══════════════════════════ ACTIONS & SUMMARY ═══════════════════════════ */
+
+function buildActions(){
+  const c=S.customers;
+  const tot=c.length;
+  const items=[];
+  if(!tot&&!S.asData.length){
+    document.getElementById('actionsGrid').innerHTML=`<div class="action-card ac-teal"><div class="ac-head"><div class="ac-icon icon-teal"><svg fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01"/><circle cx="12" cy="12" r="10"/></svg></div><div class="ac-title t-teal">Daten laden</div></div><div class="ac-body">Bitte Heimbas-PDF und/oder AS-Bremen-Export hochladen.</div></div>`;
+    return;
+  }
+  const counts={A:0,B:0,C:0,D:0};
+  const rev=c.reduce((s,x)=>s+x.amount,0);
+  c.forEach(x=>counts[x.segment]++);
+  const cdShare=tot?(counts.C+counts.D)/tot:0;
+  const aShare=tot?counts.A/tot:0;
+  const opTotal=S.asData.filter(x=>!x.status.toLowerCase().includes('bezahlt')).reduce((s,x)=>s+x.amt,0);
+
+  if(counts.A<=2&&tot>=6)items.push(['red','Sofortmaßnahme: A-Kunden aufbauen','Nur '+counts.A+' A-Kunde(n) erkannt. Gespräche zur Leistungsverdichtung, Pflegegraderhöhung und Kombinationsleistungen bei geeigneten Kunden sofort einplanen.']);
+  if(cdShare>0.5)items.push(['amber','C/D-Kunden entwickeln',''+Math.round(cdShare*100)+'\u202f% der Kunden sind C oder D. Systematisches Upgrading: Bedarfsanalyse, Stundenaufbau und Zusatzleistungen gezielt ansprechen.']);
+  if(aShare>=0.3)items.push(['green','A-Kundenbasis sichern','Starker Premium-Anteil ('+counts.A+' A-Kunden). Qualitätssicherung, enge Betreuung und Empfehlungsmanagement als Priorität halten.']);
+  if(opTotal>500)items.push(['amber','Offene Posten klären (AS Bremen)','Ausstehend: '+fmt(opTotal)+'. Mahnlauf prüfen, Zahlungsklärung mit Kassen und Angehörigen einleiten.']);
+  if(S.hBooked>0){const r=(S.hDone/S.hBooked)*100;if(r<90)items.push(['red','Auslastung kritisch','Auslastung bei '+r.toFixed(1)+'\u202f%. Ursachen analysieren: Ausfälle, Absagen, Touren-Engpässe. Sofortmaßnahmen mit Einsatzplanung abstimmen.']);else if(r<96)items.push(['amber','Auslastung optimierbar',''+r.toFixed(1)+'\u202f% Auslastung. Verbesserungspotenzial durch bessere Tourenplanung oder Puffertermine möglich.'])}
+  if(counts.B>=2)items.push(['blue','B-Kunden upgraden',''+counts.B+' B-Kunden nah an der A-Schwelle. Gezielte Angehörigengespräche und Leistungspakete können diese Kunden in Segment A heben.']);
+
+  // Finance-based actions
+  if(S.fin.umsatz > 0){
+    const pkq = (S.fin.personal + S.fin.sv) / S.fin.umsatz * 100;
+    if(pkq > 75) items.push(['red','Personalkostenquote kritisch','PKQ bei '+pkq.toFixed(1)+'\u202f%. Zielwert unter 70 %. Stundenverteilung und Effizienz der Einsatzplanung prüfen.']);
+    else if(pkq > 70) items.push(['amber','Personalkostenquote beobachten','PKQ bei '+pkq.toFixed(1)+'\u202f%. Knapp über Zielwert. Umsatzsteigerung oder Kostenoptimierung empfohlen.']);
+    const ergebnis = S.fin.umsatz - (S.fin.personal + S.fin.sv + S.fin.sonstige);
+    if(ergebnis < 0) items.push(['red','Monatsergebnis negativ','Defizit von '+fmt(Math.abs(ergebnis))+'. Kostensenkung oder Umsatzsteigerung dringend notwendig.']);
+  }
+
+  // Anfragen-based actions
+  const offeneAnf = S.anfragen.filter(a=>a.status==='offen').length;
+  if(offeneAnf >= 3) items.push(['blue','Offene Anfragen bearbeiten',offeneAnf+' Anfragen unbearbeitet. Zeitnahes Erstgespräch sichert Konversion.']);
+
+  if(!items.length)items.push(['teal','Struktur im Zielbereich','Kundenmix und Umsatzstruktur grundsätzlich in Ordnung. Fokus: Stabilisierung, Empfehlungen und kontinuierliches Upgrading.']);
+
+  const icons={
+    red:`<svg fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>`,
+    amber:`<svg fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>`,
+    green:`<svg fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>`,
+    blue:`<svg fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`,
+    teal:`<svg fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>`
+  };
+  document.getElementById('actionsGrid').innerHTML=items.map(([color,title,body])=>`
+    <div class="action-card ac-${color}">
+      <div class="ac-head">
+        <div class="ac-icon icon-${color}">${icons[color]}</div>
+        <div class="ac-title t-${color}">${esc(title)}</div>
+      </div>
+      <div class="ac-body">${esc(body)}</div>
+    </div>`).join('');
+
+  renderPriorities(counts,rev);
+}
+
+function renderPriorities(counts,rev){
+  const tot=counts.A+counts.B+counts.C+counts.D;
+  const items=[];
+  if((counts.C+counts.D)/Math.max(tot,1)>0.5)items.push(['amber','Hoher C/D-Anteil – Upgrading prüfen']);
+  if(counts.A<=2&&tot>=6)items.push(['red','Zu wenig A-Kunden – Vertrieb prüfen']);
+  if(counts.A/Math.max(tot,1)>=0.3)items.push(['green','Premium-Basis stabil halten']);
+  if(S.fin.umsatz>0 && (S.fin.personal+S.fin.sv)/S.fin.umsatz>0.75)items.push(['red','PKQ über 75 % – Kosten prüfen']);
+  const offAnf = S.anfragen.filter(a=>a.status==='offen').length;
+  if(offAnf>=3)items.push(['amber',offAnf+' offene Anfragen – nachfassen']);
+  if(!items.length)items.push(['teal','Struktur im grünen Bereich']);
+  document.getElementById('priorityList').innerHTML=items.map(([c,t])=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:var(--${c}-soft);border:1px solid;border-color:${c==='amber'?'#fcd34d':c==='red'?'#fca5a5':c==='green'?'#86efac':'#a7d8d5'};margin-bottom:6px"><span style="width:7px;height:7px;border-radius:50%;background:var(--${c});flex-shrink:0"></span><span style="font-size:12px;font-weight:500;color:var(--${c})">${t}</span></div>`).join('');
+}
+
+function buildSummary(){
+  const c=S.customers;const tot=c.length;
+  if(!tot){document.getElementById('summaryBox').textContent='Noch keine Auswertung.';return}
+  const rev=c.reduce((s,x)=>s+x.amount,0);
+  const avg=tot?rev/tot:0;
+  const counts={A:0,B:0,C:0,D:0};const revs={A:0,B:0,C:0,D:0};
+  c.forEach(x=>{counts[x.segment]++;revs[x.segment]+=x.amount});
+  const opTotal=S.asData.filter(x=>!x.status.toLowerCase().includes('bezahlt')).reduce((s,x)=>s+x.amt,0);
+  const loc=document.getElementById('locName').value||'Standort';
+  const lead=document.getElementById('leadName').value||'nicht eingetragen';
+  const ausl=S.hBooked>0?`\nAuslastung:        ${((S.hDone/S.hBooked)*100).toFixed(1)} % (${S.hDone} / ${S.hBooked} Std.)`:'';
+  const opLine=S.asData.length?`\nOffene Posten:     ${fmt(opTotal)}`:'';
+  const finLine=S.fin.umsatz?`\nMonatsumsatz:      ${fmt(S.fin.umsatz)}\nPersonalkosten:    ${fmt(S.fin.personal)} + SV ${fmt(S.fin.sv)}\nLiquidität:        ${fmt(S.fin.liqui)}`:'';
+  const anfLine=S.anfragen.length?`\nAnfragen offen:    ${S.anfragen.filter(a=>a.status==='offen'||a.status==='in Bearbeitung').length} / ${S.anfragen.length}`:'';
+  document.getElementById('summaryBox').textContent=
+`Management-Update ${loc}
+${todayDE()}
+Standortleiter: ${lead}
+${'─'.repeat(40)}
+Kunden gesamt:     ${tot}
+Gesamtumsatz:      ${fmt(rev)}
+Ø Erlös/Kunde:     ${fmt(avg)}${ausl}${opLine}${finLine}${anfLine}
+${'─'.repeat(40)}
+Segmente:
+  A (>500 €):   ${counts.A}  (${pct(counts.A,tot)} | ${pct(revs.A,rev)} Umsatz)
+  B (400–500):  ${counts.B}  (${pct(counts.B,tot)} | ${pct(revs.B,rev)} Umsatz)
+  C (200–400):  ${counts.C}  (${pct(counts.C,tot)} | ${pct(revs.C,rev)} Umsatz)
+  D (<200 €):   ${counts.D}  (${pct(counts.D,tot)} | ${pct(revs.D,rev)} Umsatz)`;
+}
+
+/* ═══════════════════════════ PRINT ═══════════════════════════ */
+
 function buildPrint(){
   const c=S.customers;
   const tot=c.length;
@@ -502,10 +2867,7 @@ function buildPrint(){
   document.getElementById('pr-date').textContent=todayDE();
   document.getElementById('pr-lead').textContent=lead?'Standortleiter: '+lead:'';
 
-  if(!tot){
-    document.getElementById('pr-k-tot').textContent='–';
-    return;
-  }
+  if(!tot){document.getElementById('pr-k-tot').textContent='–';return}
 
   const rev=c.reduce((s,x)=>s+x.amount,0);
   const avg=rev/tot;
@@ -520,6 +2882,7 @@ function buildPrint(){
   document.getElementById('pr-k-rev').textContent=fmt(rev);
   document.getElementById('pr-k-avg').textContent=fmt(avg);
   document.getElementById('pr-k-op').textContent=S.asData.length?fmt(opTotal):'–';
+  document.getElementById('pr-k-liq').textContent=S.fin.liqui?fmt(S.fin.liqui):'–';
 
   const auslEl=document.getElementById('pr-k-ausl');
   if(auslR!==null){
@@ -569,339 +2932,148 @@ function buildPrint(){
     </div>`).join('');
 }
 
-function copyPrintText(){
-  const el=document.getElementById('printSheet');
-  navigator.clipboard.writeText(el.innerText).then(()=>setStatus('Ausdruck-Text kopiert.')).catch(()=>{});
+
+/* ═══════════════════════════ LOCAL SAVE / PRINT / MONTH CLOSE ═══════════════════════════ */
+
+function getReportMonth(){
+  const m=(document.getElementById('finMonat')&&document.getElementById('finMonat').value)||new Date().toISOString().slice(0,7);
+  return m || new Date().toISOString().slice(0,7);
 }
 
-pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.js';
-
-const S={customers:[],asData:[],stundenData:[],rawText:'',hBooked:0,hDone:0};
-
-function fmt(v){return new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(v||0)}
-function pct(a,b){return b>0?((a/b)*100).toFixed(1)+'\u202f%':'0,0\u202f%'}
-function cls(a){return a>500?'A':a>=400?'B':a>=200?'C':'D'}
-function todayDE(){return new Intl.DateTimeFormat('de-DE',{weekday:'long',year:'numeric',month:'long',day:'numeric'}).format(new Date())}
-function setStatus(t){document.getElementById('statusBar').textContent=t}
-
-function parseEuro(r){
-  const c=String(r||'').replace(/€/g,'').replace(/\s/g,'').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',','.');
-  const n=Number(c);return Number.isFinite(n)?n:NaN;
+function safeFileNamePart(v){
+  return String(v||'').trim().replace(/[^a-zA-Z0-9äöüÄÖÜß._-]+/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'') || 'Report';
 }
 
-function switchTab(id){
-  document.querySelectorAll('.tab').forEach((t,i)=>{
-    const ids=['uebersicht','kunden','asbremen','empfehlungen','mitarbeiter','rohtext','ausdruck'];
-    t.classList.toggle('active',ids[i]===id);
-  });
-  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id==='tab-'+id));
-  if(id==='ausdruck')buildPrint();
+function triggerDownload(blob,filename){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},500);
 }
 
-async function readPdfText(file){
-  const buf=await file.arrayBuffer();
-  const pdf=await pdfjsLib.getDocument({data:buf}).promise;
-  let txt='';
-  for(let i=1;i<=pdf.numPages;i++){
-    const pg=await pdf.getPage(i);
-    const ct=await pg.getTextContent();
-    txt+='\n--- Seite '+i+' ---\n'+ct.items.map(x=>x.str).join('\n')+'\n';
-  }
-  return txt;
-}
-
-function extractCustomers(text){
-  const lines=text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-  const aRx=new RegExp(document.getElementById('amountRx').value,'g');
-  const nRx=new RegExp(document.getElementById('nameRx').value);
-  const raw=[];
-  for(let i=0;i<lines.length;i++){
-    const line=lines[i];
-    const ms=[...line.matchAll(aRx)];
-    if(!ms.length)continue;
-    for(const m of ms){
-      const amt=parseEuro(m[1]||m[0]);
-      if(!Number.isFinite(amt)||amt<=0)continue;
-      let name='';
-      const inLine=line.replace(m[0],'').replace(/[;|]/g,' ').trim();
-      if(nRx.test(inLine)&&inLine.length>3)name=inLine;
-      if(!name)for(let j=i-1;j>=Math.max(0,i-2);j--)if(nRx.test(lines[j])){name=lines[j];break}
-      if(!name){const fb=line.split(m[0])[0].trim();if(fb.length>2)name=fb}
-      if(!name)name='Unbekannt '+(raw.length+1);
-      raw.push({customer:name,amount:amt,segment:cls(amt),source:line});
-    }
-  }
-  const grp=new Map();
-  for(const x of raw){const k=x.customer.toLowerCase();if(!grp.has(k)||grp.get(k).amount<x.amount)grp.set(k,x)}
-  return[...grp.values()].sort((a,b)=>b.amount-a.amount);
-}
-
-async function loadHeimbasPdf(e){
-  const f=e.target.files[0];if(!f)return;
-  document.getElementById('heimbasFileName').textContent=f.name;
-  document.getElementById('zoneHeimbas').style.borderColor='#0f766e';
-  document.getElementById('zoneHeimbas').style.borderStyle='solid';
-  setStatus('Analysiere Heimbas-Rechnungsvorschau: '+f.name+' …');
-  try{
-    const txt=await readPdfText(f);
-    S.rawText=txt;
-    document.getElementById('rawTA').value=txt;
-    S.customers=extractCustomers(txt);
-    render();
-    setStatus('Heimbas-Rechnungsvorschau geladen: '+f.name+' · '+S.customers.length+' Kunden erkannt.');
-  }catch(err){setStatus('Fehler beim Lesen der PDF: '+err.message)}
-}
-
-async function loadHeimbasStundenPdf(e){
-  const f=e.target.files[0];if(!f)return;
-  document.getElementById('heimbasStundenFileName').textContent=f.name;
-  document.getElementById('zoneHeimbasStunden').style.borderColor='#0f766e';
-  document.getElementById('zoneHeimbasStunden').style.borderStyle='solid';
-  setStatus('Analysiere Heimbas Stunden/Mitarbeiter: '+f.name+' …');
-  try{
-    const txt=await readPdfText(f);
-    parseHeimbasStunden(txt);
-    setStatus('Heimbas Stunden/Mitarbeiter geladen: '+f.name);
-  }catch(err){setStatus('Fehler: '+err.message)}
-}
-
-async function loadAsPdf(e){
-  const f=e.target.files[0];if(!f)return;
-  document.getElementById('asPdfFileName').textContent=f.name;
-  document.getElementById('zoneAsPdf').style.borderColor='#185fa5';
-  document.getElementById('zoneAsPdf').style.borderStyle='solid';
-  setStatus('Analysiere AS-Bremen-PDF: '+f.name+' …');
-  try{
-    const txt=await readPdfText(f);
-    parseAsText(txt);
-    setStatus('AS-Bremen-PDF geladen: '+f.name);
-  }catch(err){setStatus('Fehler: '+err.message)}
-}
-
-function parseHeimbasStunden(txt){
-  const lines=txt.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-  const stundenRx=/(\d+[.,]\d+)\s*(?:Std|h|Stunden)/i;
-  const nameRx=/^([A-ZÄÖÜ][A-Za-zÄÖÜäöüß\-]+(?:\s+[A-ZÄÖÜ][A-Za-zÄÖÜäöüß\-]+){1,3})$/;
-  const dateRx=/\d{2}\.\d{2}\.\d{4}/;
-  const ma=[];
-  let totalBooked=0,totalDone=0;
-  for(let i=0;i<lines.length;i++){
-    const line=lines[i];
-    const sm=line.match(stundenRx);
-    if(!sm)continue;
-    const stunden=parseFloat(sm[1].replace(',','.'));
-    if(!isFinite(stunden))continue;
-    let name='Unbekannt';
-    for(let j=i-1;j>=Math.max(0,i-3);j--)if(nameRx.test(lines[j])){name=lines[j];break}
-    const date=(line.match(dateRx)||[''])[0];
-    const lower=line.toLowerCase();
-    if(lower.includes('gebuch')||lower.includes('geplant')||lower.includes('soll')){totalBooked+=stunden;ma.push({name,stunden,type:'gebucht',date})}
-    else if(lower.includes('erbracht')||lower.includes('ist')||lower.includes('tatsächl')){totalDone+=stunden;ma.push({name,stunden,type:'erbracht',date})}
-    else{totalBooked+=stunden;ma.push({name,stunden,type:'gebucht',date})}
-  }
-  S.stundenData=ma;
-  if(totalBooked>0){
-    document.getElementById('hBooked').value=totalBooked.toFixed(0);
-    document.getElementById('hDone').value=totalDone>0?totalDone.toFixed(0):totalBooked.toFixed(0);
-    calcAusl();
-  }
-  renderMitarbeiter();
-  setStatus('Stunden/Mitarbeiter erkannt: '+ma.length+' Einträge · '+totalBooked.toFixed(0)+' Stunden gebucht.');
-}
-
-function renderMitarbeiter(){
-  const el=document.getElementById('maBody');
-  if(!el)return;
-  const d=S.stundenData||[];
-  if(!d.length){el.innerHTML='<tr><td colspan="4" style="color:var(--muted)">Keine Mitarbeiterdaten geladen.</td></tr>';return}
-  el.innerHTML=d.map(x=>`<tr><td>${esc(x.name)}</td><td>${x.stunden.toFixed(1)} Std.</td><td><span class="badge ${x.type==='erbracht'?'b-ok':'b-B'}">${esc(x.type)}</span></td><td>${esc(x.date)||'–'}</td></tr>`).join('');
-}
-
-function parseAsText(txt){
-  const lines=txt.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-  const aRx=/(-?\d{1,3}(?:\.\d{3})*,\d{2})\s*€?/g;
-  const nRx=/^([A-ZÄÖÜ][A-Za-zÄÖÜäöüß\-]+(?:\s+[A-ZÄÖÜ][A-Za-zÄÖÜäöüß\-]+){0,3})$/;
-  const dateRx=/\d{2}\.\d{2}\.\d{4}/;
-  const data=[];
-  for(let i=0;i<lines.length;i++){
-    const line=lines[i];
-    const ms=[...line.matchAll(aRx)];
-    if(!ms.length)continue;
-    for(const m of ms){
-      const amt=parseEuro(m[1]);
-      if(!Number.isFinite(amt)||amt<=0)continue;
-      let name='Unbekannt';
-      for(let j=i-1;j>=Math.max(0,i-2);j--)if(nRx.test(lines[j])){name=lines[j];break}
-      const due=(line.match(dateRx)||['–'])[0];
-      data.push({name,amt,status:'offen',due});
-    }
-  }
-  S.asData=data;renderAs();renderKpis();buildActions();
-}
-
-function render(){
-  renderKpis();renderSegBar();renderTable();buildActions();buildSummary();buildPrint();
-}
-
-function renderKpis(){
-  const c=S.customers;
-  const tot=c.length;
-  const rev=c.reduce((s,x)=>s+x.amount,0);
-  const avg=tot?rev/tot:0;
-  const cA=c.filter(x=>x.segment==='A').length;
-  const cD=c.filter(x=>x.segment==='D').length;
-  setText('kTot',tot||'–');
-  setText('kRev',tot?fmt(rev):'–');
-  setText('kAvg',tot?fmt(avg):'–');
-  setText('kA',tot?cA:'–');
-  setText('kD',tot?cD:'–');
-  const opTotal=S.asData.filter(x=>!x.status.toLowerCase().includes('bezahlt')).reduce((s,x)=>s+x.amt,0);
-  setText('kOp',S.asData.length?fmt(opTotal):'–');
-}
-
-function renderSegBar(){
-  const c=S.customers;
-  const tot=c.length;if(!tot)return;
-  const counts={A:0,B:0,C:0,D:0};
-  const revs={A:0,B:0,C:0,D:0};
-  const rev=c.reduce((s,x)=>s+x.amount,0);
-  c.forEach(x=>{counts[x.segment]++;revs[x.segment]+=x.amount});
-  ['A','B','C','D'].forEach(s=>{
-    document.getElementById('sb-'+s).style.width=pct(counts[s],tot);
-    document.getElementById('lg'+s).textContent=counts[s];
-  });
-  document.getElementById('revMix').textContent=['A','B','C','D'].map(s=>`${s}: ${pct(revs[s],rev)}`).join('  ·  ');
-}
-
-function renderTable(){
-  const seg=document.getElementById('segFilter').value;
-  const q=(document.getElementById('searchFilter').value||'').toLowerCase();
-  const rows=S.customers.filter(x=>(!seg||x.segment===seg)&&(!q||x.customer.toLowerCase().includes(q)));
-  const body=document.getElementById('custBody');
-  if(!rows.length){body.innerHTML='<tr><td colspan="4" style="color:var(--muted)">Keine Treffer.</td></tr>';return}
-  body.innerHTML=rows.map(x=>`<tr><td>${esc(x.customer)}</td><td>${fmt(x.amount)}</td><td><span class="badge b-${x.segment}">${x.segment}</span></td><td style="font-family:DM Mono,monospace;font-size:11px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.source)}</td></tr>`).join('');
-}
-
-function renderAs(){
-  const d=S.asData;
-  const opAmt=d.filter(x=>!x.status.toLowerCase().includes('bezahlt')).reduce((s,x)=>s+x.amt,0);
-  const okAmt=d.filter(x=>x.status.toLowerCase().includes('bezahlt')).reduce((s,x)=>s+x.amt,0);
-  setText('asOpTotal',d.length?fmt(opAmt):'–');
-  setText('asOkTotal',d.length?fmt(okAmt):'–');
-  setText('asTot',d.length||'–');
-  document.getElementById('asInfo').textContent=d.length?`${d.length} Positionen geladen · Offen: ${fmt(opAmt)} · Bezahlt: ${fmt(okAmt)}`:'Noch kein Export geladen.';
-  const body=document.getElementById('asBody');
-  if(!d.length){body.innerHTML='<tr><td colspan="4" style="color:var(--muted)">Keine Daten.</td></tr>';return}
-  body.innerHTML=d.map(x=>{
-    const ok=x.status.toLowerCase().includes('bezahlt');
-    return`<tr><td>${esc(x.name)}</td><td>${fmt(x.amt)}</td><td><span class="badge ${ok?'b-ok':'b-open'}">${esc(x.status)}</span></td><td>${esc(x.due)}</td></tr>`;
-  }).join('');
-}
-
-function calcAusl(){
-  const b=parseFloat(document.getElementById('hBooked').value)||0;
-  const d=parseFloat(document.getElementById('hDone').value)||0;
-  S.hBooked=b;S.hDone=d;
-  if(!b){setText('auslPct','–');document.getElementById('auslNote').textContent='Bitte Stunden eingeben.';document.getElementById('auslFill').style.width='0%';return}
-  const r=(d/b)*100;
-  const pctStr=r.toFixed(1)+'\u202f%';
-  setText('auslPct',pctStr);
-  const diff=d-b;
-  document.getElementById('auslNote').textContent=`${d} von ${b} Stunden erbracht · Differenz: ${diff>=0?'+':''}${diff} Std.`;
-  const fill=document.getElementById('auslFill');
-  fill.style.width=Math.min(r,100)+'%';
-  fill.className='ausl-fill'+(r<85?' danger':r<95?' warn':'');
-  buildActions();buildSummary();
-}
-
-function buildActions(){
-  const c=S.customers;
-  const tot=c.length;
-  const items=[];
-  if(!tot&&!S.asData.length){
-    document.getElementById('actionsGrid').innerHTML=`<div class="action-card ac-teal"><div class="ac-head"><div class="ac-icon icon-teal"><svg fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01"/><circle cx="12" cy="12" r="10"/></svg></div><div class="ac-title t-teal">Daten laden</div></div><div class="ac-body">Bitte Heimbas-PDF und/oder AS-Bremen-Export hochladen.</div></div>`;
-    return;
-  }
-  const counts={A:0,B:0,C:0,D:0};
-  const rev=c.reduce((s,x)=>s+x.amount,0);
-  c.forEach(x=>counts[x.segment]++);
-  const cdShare=tot?(counts.C+counts.D)/tot:0;
-  const aShare=tot?counts.A/tot:0;
-  const opTotal=S.asData.filter(x=>!x.status.toLowerCase().includes('bezahlt')).reduce((s,x)=>s+x.amt,0);
-
-  if(counts.A<=2&&tot>=6)items.push(['red','Sofortmaßnahme: A-Kunden aufbauen','Nur '+counts.A+' A-Kunde(n) erkannt. Gespräche zur Leistungsverdichtung, Pflegegraderhöhung und Kombinationsleistungen bei geeigneten Kunden sofort einplanen.']);
-  if(cdShare>0.5)items.push(['amber','C/D-Kunden entwickeln',''+Math.round(cdShare*100)+'\u202f% der Kunden sind C oder D. Systematisches Upgrading: Bedarfsanalyse, Stundenaufbau und Zusatzleistungen gezielt ansprechen.']);
-  if(aShare>=0.3)items.push(['green','A-Kundenbasis sichern','Starker Premium-Anteil ('+counts.A+' A-Kunden). Qualitätssicherung, enge Betreuung und Empfehlungsmanagement als Priorität halten.']);
-  if(opTotal>500)items.push(['amber','Offene Posten klären (AS Bremen)','Ausstehend: '+fmt(opTotal)+'. Mahnlauf prüfen, Zahlungsklärung mit Kassen und Angehörigen einleiten.']);
-  if(S.hBooked>0){const r=(S.hDone/S.hBooked)*100;if(r<90)items.push(['red','Auslastung kritisch','Auslastung bei '+r.toFixed(1)+'\u202f%. Ursachen analysieren: Ausfälle, Absagen, Touren-Engpässe. Sofortmaßnahmen mit Einsatzplanung abstimmen.']);else if(r<96)items.push(['amber','Auslastung optimierbar',''+r.toFixed(1)+'\u202f% Auslastung. Verbesserungspotenzial durch bessere Tourenplanung oder Puffertermine möglich.'])}
-  if(counts.B>=2)items.push(['blue','B-Kunden upgraden',''+counts.B+' B-Kunden nah an der A-Schwelle. Gezielte Angehörigengespräche und Leistungspakete können diese Kunden in Segment A heben.']);
-  if(!items.length)items.push(['teal','Struktur im Zielbereich','Kundenmix und Umsatzstruktur grundsätzlich in Ordnung. Fokus: Stabilisierung, Empfehlungen und kontinuierliches Upgrading.']);
-
-  const icons={
-    red:`<svg fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>`,
-    amber:`<svg fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>`,
-    green:`<svg fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>`,
-    blue:`<svg fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`,
-    teal:`<svg fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>`
+function collectCFOArchiveData(){
+  if(document.getElementById('tab-cfo')) calcCFO();
+  if(document.getElementById('tab-ausdruck')) buildPrint();
+  const month=getReportMonth();
+  const location=(document.getElementById('locName')&&document.getElementById('locName').value)||'Landsberg am Lech';
+  const cfo=cfoRead ? cfoRead() : {};
+  const cfoReport=(document.getElementById('cfoReport')&&document.getElementById('cfoReport').textContent)||'';
+  const summary=(document.getElementById('summaryBox')&&document.getElementById('summaryBox').textContent)||'';
+  return {
+    version:'KM Standortleiter Dashboard CFO optimiert',
+    exported_at:new Date().toISOString(),
+    month,
+    location,
+    customers:S.customers||[],
+    asData:S.asData||[],
+    stundenData:S.stundenData||[],
+    anfragen:S.anfragen||[],
+    commLog:S.commLog||[],
+    fin:S.fin||{},
+    bwa:S.bwa||{},
+    bwaImport:S.bwaImport||null,
+    edtimeImport:S.edtimeImport||null,
+    cfoInputs:cfo,
+    cfoReport,
+    managementSummary:summary,
+    printText:(document.getElementById('printSheet')&&document.getElementById('printSheet').innerText)||''
   };
-  document.getElementById('actionsGrid').innerHTML=items.map(([color,title,body])=>`
-    <div class="action-card ac-${color}">
-      <div class="ac-head">
-        <div class="ac-icon icon-${color}">${icons[color]}</div>
-        <div class="ac-title t-${color}">${esc(title)}</div>
-      </div>
-      <div class="ac-body">${esc(body)}</div>
-    </div>`).join('');
-
-  renderPriorities(counts,rev);
 }
 
-function renderPriorities(counts,rev){
-  const tot=counts.A+counts.B+counts.C+counts.D;
-  const items=[];
-  if((counts.C+counts.D)/Math.max(tot,1)>0.5)items.push(['amber','Hoher C/D-Anteil – Upgrading prüfen']);
-  if(counts.A<=2&&tot>=6)items.push(['red','Zu wenig A-Kunden – Vertrieb prüfen']);
-  if(counts.A/Math.max(tot,1)>=0.3)items.push(['green','Premium-Basis stabil halten']);
-  if(!items.length)items.push(['teal','Struktur im grünen Bereich']);
-  document.getElementById('priorityList').innerHTML=items.map(([c,t])=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:var(--${c}-soft);border:1px solid;border-color:${c==='amber'?'#fcd34d':c==='red'?'#fca5a5':c==='green'?'#86efac':'#a7d8d5'};margin-bottom:6px"><span style="width:7px;height:7px;border-radius:50%;background:var(--${c});flex-shrink:0"></span><span style="font-size:12px;font-weight:500;color:var(--${c})">${t}</span></div>`).join('');
+function saveLocalSnapshot(){
+  const data=collectCFOArchiveData();
+  const name=`${data.month}_KM_CFO_Analyse_${safeFileNamePart(data.location)}.json`;
+  triggerDownload(new Blob([JSON.stringify(data,null,2)],{type:'application/json;charset=utf-8'}),name);
+  setStatus('JSON Snapshot lokal gespeichert: '+name);
 }
 
-function buildSummary(){
-  const c=S.customers;const tot=c.length;
-  if(!tot){document.getElementById('summaryBox').textContent='Noch keine Auswertung.';return}
-  const rev=c.reduce((s,x)=>s+x.amount,0);
-  const avg=tot?rev/tot:0;
-  const counts={A:0,B:0,C:0,D:0};const revs={A:0,B:0,C:0,D:0};
-  c.forEach(x=>{counts[x.segment]++;revs[x.segment]+=x.amount});
-  const opTotal=S.asData.filter(x=>!x.status.toLowerCase().includes('bezahlt')).reduce((s,x)=>s+x.amt,0);
-  const loc=document.getElementById('locName').value||'Standort';
-  const lead=document.getElementById('leadName').value||'nicht eingetragen';
-  const ausl=S.hBooked>0?`\nAuslastung:        ${((S.hDone/S.hBooked)*100).toFixed(1)} % (${S.hDone} / ${S.hBooked} Std.)`:'';
-  const opLine=S.asData.length?`\nOffene Posten:     ${fmt(opTotal)}`:'';
-  document.getElementById('summaryBox').textContent=
-`Management-Update ${loc}
-${todayDE()}
-Standortleiter: ${lead}
-${'─'.repeat(40)}
-Kunden gesamt:     ${tot}
-Gesamtumsatz:      ${fmt(rev)}
-Ø Erlös/Kunde:     ${fmt(avg)}${ausl}${opLine}
-${'─'.repeat(40)}
-Segmente:
-  A (>500 €):   ${counts.A}  (${pct(counts.A,tot)} | ${pct(revs.A,rev)} Umsatz)
-  B (400–500):  ${counts.B}  (${pct(counts.B,tot)} | ${pct(revs.B,rev)} Umsatz)
-  C (200–400):  ${counts.C}  (${pct(counts.C,tot)} | ${pct(revs.C,rev)} Umsatz)
-  D (<200 €):   ${counts.D}  (${pct(counts.D,tot)} | ${pct(revs.D,rev)} Umsatz)`;
+function exportCFOReportPDF(){
+  buildPrint();
+  const el=document.getElementById('printSheet');
+  if(!el){ setStatus('Report-Bereich nicht gefunden.'); return Promise.resolve(); }
+  const month=getReportMonth();
+  const loc=(document.getElementById('locName')&&document.getElementById('locName').value)||'Landsberg';
+  const filename=`${month}_KM_CFO_Report_${safeFileNamePart(loc)}.pdf`;
+
+  if(!window.html2pdf){
+    setStatus('PDF-Bibliothek nicht geladen – Druckdialog wird geöffnet (dort „Als PDF speichern" wählen).');
+    window.print();
+    return Promise.resolve();
+  }
+
+  // Der Monatsabschluss-Tab muss zum Rendern sichtbar/messbar sein, sonst erzeugt html2canvas eine leere Seite.
+  const panel=document.getElementById('tab-ausdruck');
+  const wasHidden=panel && !panel.classList.contains('active');
+  let restore=null;
+  if(wasHidden){
+    // unsichtbar, aber gerendert: außerhalb des sichtbaren Bereichs positionieren
+    const prev={position:panel.style.position,left:panel.style.left,display:panel.style.display};
+    panel.style.display='block';
+    panel.style.position='absolute';
+    panel.style.left='-10000px';
+    restore=()=>{ panel.style.position=prev.position; panel.style.left=prev.left; panel.style.display=prev.display; };
+  }
+
+  setStatus('Erzeuge PDF … bitte einen Moment.');
+  return html2pdf().set({
+    margin:10,
+    filename,
+    image:{type:'jpeg',quality:0.98},
+    html2canvas:{scale:2,useCORS:true,logging:false,backgroundColor:'#ffffff'},
+    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+    pagebreak:{mode:['avoid-all','css','legacy']}
+  }).from(el).save()
+    .then(()=>{ if(restore)restore(); setStatus('✓ PDF gespeichert: '+filename); })
+    .catch(err=>{
+      if(restore)restore();
+      console.error('PDF-Export Fehler:',err);
+      setStatus('PDF-Export fehlgeschlagen – Druckdialog wird geöffnet. Dort „Als PDF speichern" wählen.');
+      window.print();
+    });
 }
+
+function exportCFOReportText(){
+  const data=collectCFOArchiveData();
+  const txt=`KM Fürsorge GmbH CFO Monatsabschluss\nMonat: ${data.month}\nStandort: ${data.location}\nExport: ${new Date().toLocaleString('de-DE')}\n\n${data.cfoReport || data.managementSummary}\n\nManagement Summary\n${data.managementSummary}`;
+  const name=`${data.month}_KM_CFO_Zusammenfassung_${safeFileNamePart(data.location)}.txt`;
+  triggerDownload(new Blob([txt],{type:'text/plain;charset=utf-8'}),name);
+  return name;
+}
+
+function exportCFOReport(){
+  return exportCFOReportPDF();
+}
+
+function monatAbschliessen(){
+  return closeMonthArchive();
+}
+
+function closeMonthArchive(){
+  // Browser können ohne Nutzerfreigabe keinen Ordner direkt beschreiben. Deshalb werden die Monatsdateien als Downloads erzeugt.
+  // Mehrere gleichzeitige Downloads werden von Browsern blockiert -> nacheinander mit kleiner Verzögerung, PDF zuletzt.
+  setStatus('Monatsabschluss wird erzeugt … JSON, Textzusammenfassung und PDF folgen nacheinander.');
+  try{ saveLocalSnapshot(); }catch(e){ console.error(e); }
+  setTimeout(()=>{ try{ exportCFOReportText(); }catch(e){ console.error(e); } }, 400);
+  setTimeout(()=>{
+    exportCFOReportPDF().then(()=>{
+      setStatus('✓ Monatsabschluss vollständig: JSON-Snapshot, Textzusammenfassung und PDF wurden heruntergeladen.');
+    });
+  }, 900);
+}
+
+/* ═══════════════════════════ CSV EXPORT ═══════════════════════════ */
 
 function exportCsv(type){
   let rows,filename;
   if(type==='kunden'){
     rows=[['Kunde','Betrag','Segment'],...S.customers.map(x=>[x.customer,x.amount.toFixed(2).replace('.',','),x.segment])];
-    filename='kunden_'+new Date().toISOString().slice(0,10)+'.csv';
+    filename='kunden_'+todayISO()+'.csv';
   }else{
     rows=[['Kunde','Betrag','Status','Fällig'],...S.asData.map(x=>[x.name,x.amt.toFixed(2).replace('.',','),x.status,x.due])];
-    filename='asbremen_'+new Date().toISOString().slice(0,10)+'.csv';
+    filename='asbremen_'+todayISO()+'.csv';
   }
   const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\r\n');
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
@@ -918,11 +3090,90 @@ function copySummary(){
   navigator.clipboard.writeText(t).then(()=>setStatus('Zusammenfassung kopiert.')).catch(()=>{});
 }
 
+function copyPrintText(){
+  const el=document.getElementById('printSheet');
+  navigator.clipboard.writeText(el.innerText).then(()=>setStatus('Ausdruck-Text kopiert.')).catch(()=>{});
+}
+
+function runDiagnostics(){
+  const txt=document.getElementById('rawTA').value||'';
+  const lines=txt.split('\n').map(x=>x.trim()).filter(Boolean);
+  const out=[];
+  out.push('═══ DIAGNOSTIK ═══');
+  out.push('Zeilen gesamt: '+lines.length);
+  out.push('Zeichen gesamt: '+txt.length);
+  out.push('');
+  
+  // Count lines with amounts
+  const amtRx=/\d+[.,]\d{2}/;
+  const amtLines=lines.filter(l=>amtRx.test(l));
+  out.push('Zeilen mit Beträgen: '+amtLines.length);
+  
+  // Show first 10 amount lines
+  if(amtLines.length){
+    out.push('Erste Zeilen mit Beträgen:');
+    amtLines.slice(0,10).forEach((l,i)=>out.push('  '+(i+1)+'. '+l));
+  }
+  out.push('');
+  
+  // Count lines with €
+  const euroLines=lines.filter(l=>l.includes('€'));
+  out.push('Zeilen mit €-Zeichen: '+euroLines.length);
+  
+  // Count lines with pipe separator
+  const pipeLines=lines.filter(l=>l.includes('|'));
+  out.push('Zeilen mit | (Spalten-Trenner): '+pipeLines.length);
+  if(pipeLines.length){
+    out.push('Erste Spalten-Zeilen:');
+    pipeLines.slice(0,5).forEach((l,i)=>out.push('  '+(i+1)+'. '+l));
+  }
+  out.push('');
+  
+  // Count name-like lines
+  const nameRx=/^[A-ZÄÖÜ][a-zäöüß]+(?:[-\s][A-Za-zÄÖÜäöüß]+){1,4}$/;
+  const nameLines=lines.filter(l=>nameRx.test(l)&&l.length>4&&l.length<50);
+  out.push('Namens-artige Zeilen: '+nameLines.length);
+  if(nameLines.length){
+    out.push('Erkannte Namen:');
+    nameLines.slice(0,15).forEach((l,i)=>out.push('  '+(i+1)+'. '+l));
+  }
+  out.push('');
+  
+  // Test extraction
+  const customers=extractCustomers(txt);
+  out.push('Erkannte Kunden: '+customers.length);
+  if(customers.length){
+    customers.forEach(c=>out.push('  → '+c.customer+' · '+fmt(c.amount)+' · Seg. '+c.segment));
+  }else{
+    out.push('');
+    out.push('⚠ KEINE KUNDEN ERKANNT');
+    out.push('Mögliche Ursachen:');
+    out.push('  • PDF enthält keine Euro-Beträge im Format "123,45 €"');
+    out.push('  • PDF-Text wurde nicht korrekt extrahiert (Scan statt Text-PDF?)');
+    out.push('  • Beträge stehen in einem unerwarteten Format');
+    out.push('  • Text manuell hier einfügen und "Erneut auswerten" klicken');
+  }
+  
+  const diagEl=document.getElementById('diagOutput');
+  diagEl.style.display='block';
+  diagEl.textContent=out.join('\n');
+}
+
 function reanalyze(){
   const txt=document.getElementById('rawTA').value||'';
-  S.rawText=txt;S.customers=extractCustomers(txt);
-  render();setStatus('Erneut ausgewertet: '+S.customers.length+' Kunden erkannt.');
+  S.rawText=txt;
+  const lines=txt.split('\n').filter(x=>x.trim()).length;
+  S.customers=extractCustomers(txt);
+  parseHeimbasStunden(txt);
+  render();
+  if(S.customers.length){
+    setStatus('✓ Erneut ausgewertet: '+S.customers.length+' Kunden · '+lines+' Zeilen · Umsatz: '+fmt(S.customers.reduce((s,x)=>s+x.amount,0)));
+  }else{
+    setStatus('⚠ '+lines+' Zeilen analysiert, aber 0 Kunden erkannt. Tipps: Prüfen Sie ob Euro-Beträge im Format "123,45 €" vorhanden sind.');
+  }
 }
+
+/* ═══════════════════════════ DEMO ═══════════════════════════ */
 
 function loadDemo(){
   const heimbasText=`Rechnungsvorschau\nMax Mustermann\n684,50 €\nErika Beispiel\n455,00 €\nHans Testkunde\n398,00 €\nAnna Sommer\n189,50 €\nPeter Winter\n520,00 €\nSabine Blau\n210,00 €\nMia Kurz\n95,00 €\nKlaus Bergmann\n540,00 €`;
@@ -955,15 +3206,331 @@ function loadDemo(){
   document.getElementById('asPdfFileName').textContent='demo_asbremen.pdf';
   document.getElementById('zoneAsPdf').style.borderColor='#185fa5';
   document.getElementById('zoneAsPdf').style.borderStyle='solid';
+
+  // Demo Finanzdaten
+  document.getElementById('finMonat').value='2026-04';
+  document.getElementById('finUmsatz').value='18500';
+  document.getElementById('finPersonal').value='11200';
+  document.getElementById('finSV').value='2350';
+  document.getElementById('finSonstige').value='1800';
+  document.getElementById('finLiqui').value='9200';
+  document.getElementById('bwaRaum').value='850';
+  document.getElementById('bwaVers').value='320';
+  document.getElementById('bwaKfz').value='580';
+  document.getElementById('bwaAfa').value='180';
+  document.getElementById('bwaSonstig').value='420';
+
+  // Demo Anfragen
+  S.anfragen = [
+    {datum:'2026-04-20',name:'Helga Braun',quelle:'Pflegestützpunkt',status:'offen',notiz:'Pflegegrad 2, hauswirtschaftliche Versorgung',id:1},
+    {datum:'2026-04-18',name:'Kurt Fischer',quelle:'Empfehlung',status:'angenommen',notiz:'Pflegegrad 3, Alltagsbegleitung 3x/Woche',id:2},
+    {datum:'2026-04-15',name:'Inge Weiß',quelle:'Krankenhaus',status:'in Bearbeitung',notiz:'Entlassung KW 17, Erstgespräch geplant',id:3},
+    {datum:'2026-04-10',name:'Friedrich Neuhaus',quelle:'Pflegekasse',status:'abgelehnt',notiz:'Kapazität aktuell nicht ausreichend',id:4},
+  ];
+
+  // Demo AS Kommunikation
+  S.commLog = [
+    {datum:'2026-04-22',kontakt:'Frau Petersen',kanal:'E-Mail',thema:'Offene Posten',status:'offen',delegiert:'',inhalt:'Rückfrage zur Abrechnung März: 3 Positionen noch nicht zugeordnet. Bitte um Klärung bis 30.04.',id:10},
+    {datum:'2026-04-18',kontakt:'Herr Brandt',kanal:'Telefon',thema:'Leistungsnachweis',status:'delegiert',delegiert:'Maria Huber',inhalt:'Leistungsnachweise für Bergmann und Winter nachreichen. Frist: 25.04. An Maria delegiert.',id:11},
+    {datum:'2026-04-12',kontakt:'Frau Petersen',kanal:'Portal',thema:'Abrechnung',status:'erledigt',delegiert:'',inhalt:'Korrektur Abrechnungsperiode Februar abgeschlossen. Gutschrift bestätigt.',id:12},
+  ];
+
+  // Demo Entgelte
+  document.getElementById('entKunden').value='8';
+
+  calcFinanzen();calcBWA();renderAnfragen();renderComm();calcEntgelte();
   render();renderAs();calcAusl();renderMitarbeiter();
-  setStatus('Demo-Daten geladen.');
+  setStatus('Demo-Daten geladen (inkl. Finanzen, Anfragen, AS-Kommunikation und Entgelte).');
 }
 
-function setText(id,val){const el=document.getElementById(id);if(el)el.textContent=val}
-function esc(v){return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+/* ═══════════════════════════ INIT ═══════════════════════════ */
+
+
+function setupDropZone(zoneId,inputId,handler,acceptAny){
+  const zone=document.getElementById(zoneId);
+  const input=document.getElementById(inputId);
+  if(!zone||!input)return;
+  ['dragenter','dragover'].forEach(ev=>zone.addEventListener(ev,e=>{
+    e.preventDefault();e.stopPropagation();
+    zone.style.transform='translateY(-2px)';
+    zone.style.boxShadow='0 8px 24px rgba(0,0,0,.08)';
+  }));
+  ['dragleave','drop'].forEach(ev=>zone.addEventListener(ev,e=>{
+    e.preventDefault();e.stopPropagation();
+    zone.style.transform='';
+    zone.style.boxShadow='';
+  }));
+  zone.addEventListener('drop',e=>{
+    const files=[...(e.dataTransfer&&e.dataTransfer.files?e.dataTransfer.files:[])];
+    if(!files.length)return;
+    const invalid=files.find(f=>!SUPPORTED_FILE_RX.test(f.name)&&f.type!=='application/pdf');
+    if(invalid){setStatus('Nicht unterstütztes Format: '+invalid.name+' – bitte PDF, Excel (.xlsx/.xls) oder CSV ablegen.');return;}
+    const dt=new DataTransfer();
+    files.forEach(f=>dt.items.add(f));
+    input.files=dt.files;
+    if(handler){
+      if(input.multiple || files.length>1)handler(files);
+      else handler(files[0]);
+    } else input.dispatchEvent(new Event('change',{bubbles:true}));
+  });
+}
+
+/* ═══════════════════════════ SMART-IMPORT (globales Drag & Drop) ═══════════════════════════ */
+
+function detectFileType(txt,fname){
+  const t=String(txt||'').slice(0,30000);
+  const fn=String(fname||'').toLowerCase();
+  const score={heimbas:0,heimbasStunden:0,as:0,bwa:0,edtime:0};
+  // Inhaltsmerkmale
+  if(/rechnungsvorschau/i.test(t))score.heimbas+=5;
+  if(/erlöse/i.test(t)&&/löhne/i.test(t)&&/marge/i.test(t))score.heimbas+=4;
+  if(/^1011\s+\d{5}$/m.test(t))score.as+=6;
+  if(/offene\s*posten/i.test(t))score.as+=4;
+  if(/beh\.\s*person|zahlungsziel|fakt\.\s*(datum|betrag)/i.test(t))score.as+=3;
+  if(/\bBWA\b|betriebswirtschaftliche\s+auswertung/i.test(t))score.bwa+=4;
+  if(/summe\s+erlöse/i.test(t)&&/personalkosten/i.test(t))score.bwa+=4;
+  if(/abrechnungszeitraum/i.test(t))score.bwa+=2;
+  if(/fahrtzeit|fahrtkosten|edtime/i.test(t))score.edtime+=5;
+  if(/zeiterfassung/i.test(t))score.edtime+=2;
+  if(/krank/i.test(t)&&/(std\.?|stunden)/i.test(t))score.edtime+=1;
+  if(/terminierte?\s+stunden|geplante?\s+stunden|stundenübersicht/i.test(t))score.heimbasStunden+=5;
+  if(/mitarbeiter/i.test(t)&&/(std\.?|stunden)/i.test(t))score.heimbasStunden+=2;
+  // Dateiname als Zusatzsignal
+  if(/rechnungsvorschau|rechnung/.test(fn))score.heimbas+=2;
+  if(/stunden|termin/.test(fn))score.heimbasStunden+=2;
+  if(/as[-_ ]?bremen|opos|posten|abrechnung/.test(fn))score.as+=2;
+  if(/bwa/.test(fn))score.bwa+=3;
+  if(/edtime|fahrt|zeiterfassung|ausfall/.test(fn))score.edtime+=3;
+  const sorted=Object.entries(score).sort((a,b)=>b[1]-a[1]);
+  // eindeutig: bester Score ≥ 4 und klar vor dem zweiten
+  if(sorted[0][1]>=4 && sorted[0][1]>=sorted[1][1]+2)return sorted[0][0];
+  return null;
+}
+
+const TYPE_LABEL={heimbas:'Heimbas Kunden',heimbasStunden:'Heimbas Stunden',as:'AS Bremen',bwa:'BWA',edtime:'Edtime'};
+
+/* Typ-Auswahl-Dialog (Promise-basiert) */
+let _tcResolve=null;
+function askFileType(fname){
+  return new Promise(resolve=>{
+    _tcResolve=resolve;
+    document.getElementById('tcFileName').textContent=fname;
+    document.getElementById('typeChooser').classList.add('active');
+  });
+}
+function tcPick(typ){
+  document.getElementById('typeChooser').classList.remove('active');
+  if(_tcResolve){_tcResolve(typ);_tcResolve=null;}
+}
+
+/* Import-Log */
+function importLogReset(){
+  const el=document.getElementById('importLog');
+  if(el){el.innerHTML='';el.style.display='block';}
+}
+function importLogAdd(fname,typ,msg,cls){
+  const el=document.getElementById('importLog');
+  if(!el)return;
+  const row=document.createElement('div');
+  row.className='il-row';
+  row.innerHTML='<span class="il-name">'+esc(fname)+'</span><span class="il-typ '+(cls||'')+'">'+esc(typ)+'</span><span class="il-msg">'+esc(msg||'')+'</span>';
+  el.appendChild(row);
+}
+
+/* Kern: Dateien lesen, Typ erkennen, an den richtigen Parser routen */
+async function smartImportFiles(fileList){
+  let files=[...(fileList||[])];
+  const rejected=files.filter(f=>!SUPPORTED_FILE_RX.test(f.name)&&f.type!=='application/pdf');
+  files=files.filter(f=>SUPPORTED_FILE_RX.test(f.name)||f.type==='application/pdf');
+  importLogReset();
+  rejected.forEach(f=>importLogAdd(f.name,'übersprungen','Format nicht unterstützt','il-skip'));
+  if(!files.length){setStatus('Keine unterstützten Dateien (PDF, Excel, CSV).');return;}
+  setStatus('Smart-Import: '+files.length+' Datei(en) werden analysiert …');
+  const edtimeQueue=[];
+  let ok=0;
+  for(const f of files){
+    try{
+      const txt=await readAnyFileText(f);
+      let typ=detectFileType(txt,f.name);
+      if(!typ)typ=await askFileType(f.name);
+      if(!typ){importLogAdd(f.name,'übersprungen','manuell übersprungen','il-skip');continue;}
+      if(typ==='edtime'){edtimeQueue.push({f,txt});importLogAdd(f.name,TYPE_LABEL[typ],'erkannt ✓');ok++;continue;}
+      if(typ==='heimbas')processHeimbas(txt,f.name);
+      else if(typ==='heimbasStunden')processHeimbasStunden(txt,f.name);
+      else if(typ==='as')processAs(txt,f.name);
+      else if(typ==='bwa')processBwa(txt,f.name);
+      importLogAdd(f.name,TYPE_LABEL[typ],'importiert ✓');
+      ok++;
+    }catch(err){
+      importLogAdd(f.name,'Fehler',err.message,'il-err');
+      console.error(err);
+    }
+  }
+  if(edtimeQueue.length)await handleEdtimeParsed(edtimeQueue);
+  buildCockpit();
+  if(ok)setStatus('✓ Smart-Import abgeschlossen: '+ok+' von '+files.length+' Datei(en) importiert. Details im Import-Protokoll.');
+}
+
+/* Globales Drag & Drop mit Overlay */
+function initGlobalDrop(){
+  const overlay=document.getElementById('globalDropOverlay');
+  let counter=0;
+  window.addEventListener('dragenter',e=>{
+    if(!e.dataTransfer||![...e.dataTransfer.types].includes('Files'))return;
+    e.preventDefault();
+    counter++;
+    overlay.classList.add('active');
+  });
+  window.addEventListener('dragover',e=>{e.preventDefault();});
+  window.addEventListener('dragleave',e=>{
+    counter=Math.max(0,counter-1);
+    if(counter===0)overlay.classList.remove('active');
+  });
+  window.addEventListener('drop',e=>{
+    counter=0;
+    overlay.classList.remove('active');
+    // Zonen-Drops haben stopPropagation – hier kommt nur "irgendwo auf der Seite" an
+    e.preventDefault();
+    const files=e.dataTransfer&&e.dataTransfer.files?e.dataTransfer.files:null;
+    if(files&&files.length)smartImportFiles(files);
+  });
+}
+
+function initDropZones(){
+  setupDropZone('zoneHeimbas','uHeimbas');
+  setupDropZone('zoneHeimbasStunden','uHeimbasStunden');
+  setupDropZone('zoneAsPdf','uAsPdf');
+  setupDropZone('zoneBwaPdf','uBwaPdf',handleBwaFile);
+  setupDropZone('zoneEdtime','uEdtime',handleEdtimeFiles,true);
+  initGlobalDrop();
+}
+
+/* ═══════════════════════════ ROLLE: Standortleiter / Geschäftsführer ═══════════════════════════ */
+let currentRole = 'leiter';
+
+// Welche Tabs sieht welche Rolle (Reihenfolge bleibt, nur Sichtbarkeit ändert sich)
+const ROLE_TABS = {
+  leiter: ['uebersicht','kunden','mitarbeiter','empfehlungen','ausdruck','rohtext'],
+  gf:     ['uebersicht','finanzen','kunden','mitarbeiter','cfo','empfehlungen','ausdruck','rohtext']
+};
+
+function setRole(role){
+  currentRole = role;
+  document.querySelectorAll('.role-btn').forEach(b=>b.classList.toggle('active', b.dataset.role===role));
+  document.getElementById('dashTitle').textContent = role==='gf' ? 'Geschäftsführer Dashboard' : 'Standortleiter Dashboard';
+  const allowed = ROLE_TABS[role];
+  document.querySelectorAll('.tabs .tab').forEach(btn=>{
+    const m = (btn.getAttribute('onclick')||'').match(/switchTab\('([^']+)'\)/);
+    if(!m) return;
+    btn.style.display = allowed.includes(m[1]) ? '' : 'none';
+  });
+  // Falls aktiver Tab für die Rolle nicht erlaubt ist, auf Übersicht zurück
+  const activeBtn = document.querySelector('.tabs .tab.active');
+  const am = activeBtn ? (activeBtn.getAttribute('onclick')||'').match(/switchTab\('([^']+)'\)/) : null;
+  if(!am || !allowed.includes(am[1])) switchTab('uebersicht');
+  buildCockpit();
+}
+
+/* ═══════════════════════════ KOMPAKT-COCKPIT ═══════════════════════════ */
+function cockpitStatus(val, goodAbove, warnAbove, invert){
+  if(val===null||val===undefined||isNaN(val)) return 'neutral';
+  if(invert){ // niedriger ist besser (z. B. Krankheitsquote, Personalkostenquote)
+    if(val<=goodAbove) return 'green';
+    if(val<=warnAbove) return 'amber';
+    return 'red';
+  }
+  if(val>=goodAbove) return 'green';
+  if(val>=warnAbove) return 'amber';
+  return 'red';
+}
+
+function buildCockpit(){
+  const grid = document.getElementById('cockpitGrid');
+  const flagsEl = document.getElementById('cockpitFlags');
+  const dateEl = document.getElementById('cockpitDate');
+  if(!grid) return;
+  dateEl.textContent = todayDE();
+  document.getElementById('cockpitTitle').textContent =
+    currentRole==='gf' ? 'Geschäftsführung · das Wichtigste auf einen Blick' : 'Standort · das Wichtigste auf einen Blick';
+
+  // Datenbasis sammeln
+  const c = S.customers||[];
+  const tot = c.length;
+  const rev = c.reduce((s,x)=>s+x.amount,0);
+  const avg = tot?rev/tot:0;
+  const opTotal = (S.asData||[]).filter(x=>!x.status.toLowerCase().includes('bezahlt')).reduce((s,x)=>s+x.amt,0);
+  const ausl = S.hBooked>0 ? (S.hDone/S.hBooked*100) : null;
+  const fin = S.fin||{};
+  const ergebnis = (fin.umsatz||0) - (fin.personal||0) - (fin.sv||0) - (fin.sonstige||0);
+  const pkq = fin.umsatz ? ((fin.personal||0)+(fin.sv||0))/fin.umsatz*100 : null;
+  // Edtime-Kennzahlen falls vorhanden
+  const cfo = (typeof cfoRead==='function') ? cfoRead() : {};
+  const gesamtZeit = (cfo.stunden||0)+(cfo.fahrtzeit||0)+(cfo.krank||0);
+  const krankQuote = gesamtZeit ? (cfo.krank||0)/gesamtZeit*100 : null;
+
+  const hasData = tot>0 || (S.asData&&S.asData.length) || fin.umsatz || ausl!==null;
+  if(!hasData){
+    grid.innerHTML = '<div class="cockpit-empty">Bitte oben Daten importieren – danach erscheinen hier automatisch die wichtigsten Kennzahlen und Warnsignale.</div>';
+    flagsEl.innerHTML = '';
+    return;
+  }
+
+  // Zellen je nach Rolle
+  const cells = [];
+  if(currentRole==='gf'){
+    if(fin.umsatz) cells.push(['Umsatz (Monat)', fmt(fin.umsatz), 'Finanzen', 'neutral']);
+    if(fin.umsatz) cells.push(['Ergebnis', fmt(ergebnis), 'nach Kosten', ergebnis>=10000?'green':ergebnis>=0?'amber':'red']);
+    if(pkq!==null) cells.push(['Personalkostenquote', pkq.toFixed(1)+' %', 'Ziel < 70 %', cockpitStatus(pkq,60,70,true)]);
+    cells.push(['Offene Posten', fmt(opTotal), 'AS Bremen', opTotal>5000?'red':opTotal>2000?'amber':'green']);
+    if(ausl!==null) cells.push(['Auslastung', ausl.toFixed(0)+' %', 'gebucht/erbracht', cockpitStatus(ausl,95,85)]);
+    if(tot) cells.push(['Klienten', String(tot), 'Ø '+fmt(avg)+'/Klient', 'neutral']);
+    if(krankQuote!==null) cells.push(['Krankheitsquote', krankQuote.toFixed(1)+' %', 'Ziel < 8 %', cockpitStatus(krankQuote,5,8,true)]);
+  } else {
+    if(tot) cells.push(['Klienten', String(tot), 'aktiv', 'neutral']);
+    if(tot) cells.push(['Umsatz', fmt(rev), 'Heimbas', 'neutral']);
+    if(ausl!==null) cells.push(['Auslastung', ausl.toFixed(0)+' %', (S.hDone||0)+'/'+(S.hBooked||0)+' Std.', cockpitStatus(ausl,95,85)]);
+    cells.push(['Offene Posten', fmt(opTotal), 'AS Bremen', opTotal>5000?'red':opTotal>2000?'amber':'green']);
+    if(tot) cells.push(['Ø Erlös/Klient', fmt(avg), 'Mix-Qualität', avg>=450?'green':avg>=350?'amber':'red']);
+    if(krankQuote!==null) cells.push(['Krankheitsquote', krankQuote.toFixed(1)+' %', 'Personal', cockpitStatus(krankQuote,5,8,true)]);
+  }
+
+  grid.innerHTML = cells.map(([label,val,sub,st])=>`
+    <div class="cockpit-cell cp-${st}">
+      <div class="cc-label">${esc(label)}</div>
+      <div class="cc-val">${esc(val)}</div>
+      <div class="cc-sub">${esc(sub)}</div>
+    </div>`).join('');
+
+  // Warnsignale / Handlungsbedarf kompakt
+  const flags = [];
+  if(opTotal>5000) flags.push(['red','Offene Posten hoch','Ausstehend '+fmt(opTotal)+' bei AS Bremen – Mahnlauf und Zahlungsklärung priorisieren.']);
+  if(ausl!==null && ausl<85) flags.push(['red','Auslastung kritisch',ausl.toFixed(0)+' % – Touren, Ausfälle und freie Kapazitäten prüfen.']);
+  else if(ausl!==null && ausl<95) flags.push(['amber','Auslastung optimierbar',ausl.toFixed(0)+' % – Spielraum für bessere Tourenplanung.']);
+  if(pkq!==null && pkq>70) flags.push(['red','Personalkostenquote zu hoch',pkq.toFixed(1)+' % – über Zielwert, Wirtschaftlichkeit gefährdet.']);
+  if(krankQuote!==null && krankQuote>8) flags.push(['amber','Krankheitsquote erhöht',krankQuote.toFixed(1)+' % – Ausfallmanagement und Vertretung prüfen.']);
+  if(currentRole==='gf' && fin.umsatz && ergebnis<0) flags.push(['red','Negatives Monatsergebnis','Kosten übersteigen den Umsatz – sofortiger Handlungsbedarf.']);
+  const dShare = tot ? c.filter(x=>x.segment==='D').length/tot : 0;
+  if(dShare>0.35) flags.push(['amber','Viele Kleinklienten',Math.round(dShare*100)+' % im D-Segment – Leistungsaufbau und Pflegegradgespräche prüfen.']);
+  if(!flags.length) flags.push(['green','Keine akuten Warnsignale','Die wichtigsten Kennzahlen liegen im grünen Bereich.']);
+
+  const flagIcons={
+    red:`<svg class="cf-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>`,
+    amber:`<svg class="cf-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>`,
+    green:`<svg class="cf-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>`
+  };
+  flagsEl.innerHTML = flags.map(([t,title,body])=>`
+    <div class="cockpit-flag flag-${t}">${flagIcons[t]}<div><strong>${esc(title)}</strong> · ${esc(body)}</div></div>`).join('');
+}
 
 document.getElementById('todayStr').textContent='KM Fürsorge GmbH · '+todayDE();
+document.getElementById('finMonat').value = new Date().toISOString().slice(0,7);
+document.getElementById('anfDatum').value = todayISO();
+document.getElementById('commDatum').value = todayISO();
+initDropZones();
 buildSummary();
+calcEntgelte();
+setRole('leiter');
+buildCockpit();
 </script>
 </body>
 </html>
